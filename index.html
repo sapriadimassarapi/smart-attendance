@@ -10,9 +10,15 @@
     content="width=device-width, initial-scale=1.0"
   >
 
+  <meta
+    name="theme-color"
+    content="#17356b"
+  >
+
   <title>Smart Attendance</title>
 
 
+  <!-- QR Scanner Library -->
   <script
     src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">
   </script>
@@ -23,6 +29,7 @@
     * {
       box-sizing: border-box;
     }
+
 
     body {
 
@@ -111,6 +118,13 @@
     }
 
 
+    #startButton:disabled {
+
+      opacity: 0.65;
+
+    }
+
+
     #reader {
 
       width: 100%;
@@ -141,6 +155,8 @@
       flex-direction: column;
 
       justify-content: center;
+
+      align-items: center;
 
       box-shadow:
         0 5px 20px
@@ -202,6 +218,8 @@
 
       color: #777;
 
+      font-size: 15px;
+
     }
 
 
@@ -213,9 +231,40 @@
 
     }
 
+
+    .small {
+
+      margin-top: 16px;
+
+      color: #8a8f9c;
+
+      font-size: 12px;
+
+    }
+
+
+    #settingsButton {
+
+      margin-top: 15px;
+
+      background: none;
+
+      border: none;
+
+      color: #697386;
+
+      text-decoration: underline;
+
+      cursor: pointer;
+
+      font-size: 12px;
+
+    }
+
   </style>
 
 </head>
+
 
 
 <body>
@@ -262,13 +311,24 @@
     </div>
 
     <div class="waiting">
-
-      Tekan AKTIFKAN KAMERA
-      untuk bermula
-
+      Tekan AKTIFKAN KAMERA untuk bermula
     </div>
 
   </div>
+
+
+
+  <div class="small">
+    Smart Attendance System
+  </div>
+
+
+  <button
+    id="settingsButton"
+    onclick="ubahApiUrl()"
+  >
+    Tetapan sistem
+  </button>
 
 
 </div>
@@ -279,23 +339,395 @@
 
 
 // =================================================
-// MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
+// SMART ATTENDANCE
 // =================================================
-
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbxuSGRTe6aI4Iqc_V0QizU7Q8-RgeJirvUI6FH0Z8UTyMsxItp16I69ijR0MvgFtZyp/exec";
-
 
 
 // =================================================
-// PEMBOLEH UBAH
+// API URL
+// Disimpan dalam browser
 // =================================================
 
-let scanner;
+let API_URL =
+  localStorage.getItem(
+    "smartAttendanceApiUrl"
+  ) || "";
+
+
+
+// =================================================
+// PEMBOLEH UBAH SCANNER
+// =================================================
+
+let scanner = null;
 
 let processing = false;
 
 let cameraRunning = false;
+
+
+
+// =================================================
+// SISTEM AUDIO
+// =================================================
+
+let audioContext = null;
+
+
+
+function initAudio() {
+
+  try {
+
+    if (!audioContext) {
+
+      audioContext =
+        new (
+          window.AudioContext ||
+          window.webkitAudioContext
+        )();
+
+    }
+
+
+    if (
+      audioContext.state ===
+      "suspended"
+    ) {
+
+      audioContext.resume();
+
+    }
+
+  }
+
+  catch (error) {
+
+    console.log(
+      "Audio tidak disokong:",
+      error
+    );
+
+  }
+
+}
+
+
+
+// =================================================
+// MAIN BEEP FUNCTION
+// =================================================
+
+function playTone(
+  frequency,
+  duration,
+  volume = 0.25
+) {
+
+
+  try {
+
+
+    if (!audioContext) {
+
+      initAudio();
+
+    }
+
+
+    if (!audioContext) {
+      return;
+    }
+
+
+    const oscillator =
+      audioContext.createOscillator();
+
+
+    const gain =
+      audioContext.createGain();
+
+
+    oscillator.connect(gain);
+
+    gain.connect(
+      audioContext.destination
+    );
+
+
+    oscillator.type =
+      "sine";
+
+
+    oscillator.frequency.value =
+      frequency;
+
+
+    gain.gain.setValueAtTime(
+      volume,
+      audioContext.currentTime
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+      0.001,
+      audioContext.currentTime +
+      duration
+    );
+
+
+    oscillator.start();
+
+
+    oscillator.stop(
+      audioContext.currentTime +
+      duration
+    );
+
+
+  }
+
+  catch (error) {
+
+    console.log(
+      "Sound error:",
+      error
+    );
+
+  }
+
+}
+
+
+
+// =================================================
+// BUNYI BERJAYA
+// =================================================
+
+function soundSuccess() {
+
+
+  // Ding dua nada yang lembut
+
+  playTone(
+    880,
+    0.12,
+    0.30
+  );
+
+
+  setTimeout(
+    function() {
+
+      playTone(
+        1175,
+        0.18,
+        0.25
+      );
+
+    },
+
+    100
+
+  );
+
+}
+
+
+
+// =================================================
+// BUNYI DUPLIKAT
+// =================================================
+
+function soundDuplicate() {
+
+
+  playTone(
+    550,
+    0.12,
+    0.25
+  );
+
+
+  setTimeout(
+    function() {
+
+      playTone(
+        550,
+        0.12,
+        0.25
+      );
+
+    },
+
+    180
+
+  );
+
+}
+
+
+
+// =================================================
+// BUNYI ERROR
+// =================================================
+
+function soundError() {
+
+
+  playTone(
+    230,
+    0.35,
+    0.25
+  );
+
+}
+
+
+
+// =================================================
+// SIMPAN / UBAH URL APPS SCRIPT
+// =================================================
+
+function dapatkanApiUrl() {
+
+
+  if (
+    API_URL &&
+    API_URL.includes(
+      "script.google.com"
+    ) &&
+    API_URL.endsWith(
+      "/exec"
+    )
+  ) {
+
+    return true;
+
+  }
+
+
+  const url =
+    prompt(
+
+      "Masukkan URL Google Apps Script Smart Attendance.\n\n" +
+
+      "Pastikan URL berakhir dengan /exec"
+
+    );
+
+
+  if (!url) {
+
+    return false;
+
+  }
+
+
+  const cleanUrl =
+    url.trim();
+
+
+  if (
+    !cleanUrl.includes(
+      "script.google.com"
+    ) ||
+    !cleanUrl.endsWith(
+      "/exec"
+    )
+  ) {
+
+
+    alert(
+      "URL tidak sah.\n\n" +
+      "Pastikan URL Google Apps Script berakhir dengan /exec"
+    );
+
+
+    return false;
+
+  }
+
+
+  API_URL =
+    cleanUrl;
+
+
+  localStorage.setItem(
+    "smartAttendanceApiUrl",
+    API_URL
+  );
+
+
+  return true;
+
+}
+
+
+
+// =================================================
+// TUKAR URL APPS SCRIPT
+// =================================================
+
+function ubahApiUrl() {
+
+
+  const url =
+    prompt(
+
+      "Masukkan URL Apps Script /exec:",
+
+      API_URL
+
+    );
+
+
+  if (!url) {
+
+    return;
+
+  }
+
+
+  const cleanUrl =
+    url.trim();
+
+
+  if (
+    !cleanUrl.includes(
+      "script.google.com"
+    ) ||
+    !cleanUrl.endsWith(
+      "/exec"
+    )
+  ) {
+
+
+    alert(
+      "URL tidak sah."
+    );
+
+
+    return;
+
+  }
+
+
+  API_URL =
+    cleanUrl;
+
+
+  localStorage.setItem(
+    "smartAttendanceApiUrl",
+    API_URL
+  );
+
+
+  alert(
+    "Tetapan Smart Attendance berjaya disimpan."
+  );
+
+}
 
 
 
@@ -306,13 +738,27 @@ let cameraRunning = false;
 async function startScanner() {
 
 
+  // Unlock audio pada iPhone / Android
+  initAudio();
+
+
+  // Pastikan API telah dimasukkan
+  if (!dapatkanApiUrl()) {
+
+    return;
+
+  }
+
+
   const button =
     document.getElementById(
       "startButton"
     );
 
 
-  button.disabled = true;
+  button.disabled =
+    true;
+
 
   button.innerHTML =
     "⏳ MEMBUKA KAMERA...";
@@ -335,14 +781,20 @@ async function startScanner() {
   try {
 
 
+    // =================================================
+    // DAPATKAN SENARAI KAMERA
+    // =================================================
+
     const cameras =
       await Html5Qrcode.getCameras();
+
 
 
     if (
       !cameras ||
       cameras.length === 0
     ) {
+
 
       throw new Error(
         "Tiada kamera dijumpai."
@@ -352,15 +804,21 @@ async function startScanner() {
 
 
 
-    // Cuba cari kamera belakang
+    // =================================================
+    // PILIH KAMERA BELAKANG
+    // =================================================
 
     let selectedCamera =
-      cameras[cameras.length - 1];
+      cameras[
+        cameras.length - 1
+      ];
+
 
 
     const rearCamera =
       cameras.find(
         camera => {
+
 
           const label =
             (
@@ -368,18 +826,26 @@ async function startScanner() {
             ).toLowerCase();
 
 
+
           return (
 
-            label.includes("back") ||
+            label.includes(
+              "back"
+            ) ||
 
-            label.includes("rear") ||
+            label.includes(
+              "rear"
+            ) ||
 
-            label.includes("environment")
+            label.includes(
+              "environment"
+            )
 
           );
 
         }
       );
+
 
 
     if (rearCamera) {
@@ -391,12 +857,20 @@ async function startScanner() {
 
 
 
+    // =================================================
+    // CIPTA QR SCANNER
+    // =================================================
+
     scanner =
       new Html5Qrcode(
         "reader"
       );
 
 
+
+    // =================================================
+    // MULAKAN SCANNER
+    // =================================================
 
     await scanner.start(
 
@@ -408,13 +882,17 @@ async function startScanner() {
 
         fps: 10,
 
+
         qrbox: {
 
           width: 250,
 
           height: 250
 
-        }
+        },
+
+
+        aspectRatio: 1.0
 
       },
 
@@ -424,8 +902,7 @@ async function startScanner() {
 
       function() {
 
-        // Tidak perlu paparkan
-        // error semasa mencari QR.
+        // Abaikan scan error biasa
 
       }
 
@@ -433,11 +910,15 @@ async function startScanner() {
     );
 
 
-    cameraRunning = true;
+
+    cameraRunning =
+      true;
+
 
 
     button.style.display =
       "none";
+
 
 
     readyForNextScan();
@@ -446,6 +927,15 @@ async function startScanner() {
   }
 
   catch (error) {
+
+
+    console.error(
+      error
+    );
+
+
+    cameraRunning =
+      false;
 
 
     button.disabled =
@@ -471,8 +961,10 @@ async function startScanner() {
       '<div class="time">' +
 
       escapeHtml(
+
         error.message ||
         String(error)
+
       ) +
 
       '</div>';
@@ -487,18 +979,24 @@ async function startScanner() {
 // QR BERJAYA DIBACA
 // =================================================
 
-function onScanSuccess(decodedText) {
+function onScanSuccess(
+  decodedText
+) {
 
 
   if (processing) {
+
     return;
+
   }
 
 
-  processing = true;
+  processing =
+    true;
 
 
 
+  // Pause kamera sementara
   try {
 
     scanner.pause(true);
@@ -523,10 +1021,17 @@ function onScanSuccess(decodedText) {
 
     'MEREKOD KEHADIRAN...' +
 
+    '</div>' +
+
+    '<div class="time">' +
+
+    'Sila tunggu sebentar' +
+
     '</div>';
 
 
 
+  // Hantar QR kepada Apps Script
   sendToGoogleSheets(
     decodedText
   );
@@ -536,17 +1041,21 @@ function onScanSuccess(decodedText) {
 
 
 // =================================================
-// HANTAR KE APPS SCRIPT
-// GUNA JSONP SUPAYA BOLEH BERFUNGSI
-// DARI GITHUB PAGES
+// HANTAR DATA KE GOOGLE APPS SCRIPT
+// Menggunakan JSONP
 // =================================================
 
-function sendToGoogleSheets(qrValue) {
+function sendToGoogleSheets(
+  qrValue
+) {
 
 
   const callbackName =
+
     "smartAttendanceCallback_" +
+
     Date.now();
+
 
 
   const script =
@@ -556,31 +1065,125 @@ function sendToGoogleSheets(qrValue) {
 
 
 
-  window[callbackName] =
+  let completed =
+    false;
+
+
+
+  // =================================================
+  // TIMEOUT KESELAMATAN
+  // =================================================
+
+  const timeout =
+    setTimeout(
+      function() {
+
+
+        if (completed) {
+
+          return;
+
+        }
+
+
+        completed =
+          true;
+
+
+        soundError();
+
+
+        document.getElementById(
+          "result"
+        ).innerHTML =
+
+          '<div class="icon">❌</div>' +
+
+          '<div class="title">' +
+
+          'SAMBUNGAN GAGAL' +
+
+          '</div>' +
+
+          '<div class="time">' +
+
+          'Sila cuba semula.' +
+
+          '</div>';
+
+
+
+        cleanupJsonp(
+          callbackName,
+          script
+        );
+
+
+        prepareNextScan();
+
+
+      },
+
+      10000
+
+    );
+
+
+
+  // =================================================
+  // CALLBACK DARIPADA APPS SCRIPT
+  // =================================================
+
+  window[
+    callbackName
+  ] =
     function(data) {
+
+
+      if (completed) {
+
+        return;
+
+      }
+
+
+      completed =
+        true;
+
+
+      clearTimeout(
+        timeout
+      );
 
 
       try {
 
-        showResult(data);
+
+        showResult(
+          data
+        );
+
 
       }
 
       finally {
 
 
-        delete window[
-          callbackName
-        ];
+        cleanupJsonp(
+          callbackName,
+          script
+        );
 
-
-        script.remove();
 
       }
 
     };
 
 
+
+  // =================================================
+  // BINA URL
+  // =================================================
 
   const url =
 
@@ -596,7 +1199,9 @@ function sendToGoogleSheets(qrValue) {
 
     "&callback=" +
 
-    callbackName +
+    encodeURIComponent(
+      callbackName
+    ) +
 
     "&t=" +
 
@@ -604,12 +1209,36 @@ function sendToGoogleSheets(qrValue) {
 
 
 
-  script.src = url;
+  script.src =
+    url;
 
 
+
+  // =================================================
+  // CONNECTION ERROR
+  // =================================================
 
   script.onerror =
     function() {
+
+
+      if (completed) {
+
+        return;
+
+      }
+
+
+      completed =
+        true;
+
+
+      clearTimeout(
+        timeout
+      );
+
+
+      soundError();
 
 
       document.getElementById(
@@ -622,15 +1251,20 @@ function sendToGoogleSheets(qrValue) {
 
         'GAGAL HUBUNGI SISTEM' +
 
+        '</div>' +
+
+        '<div class="time">' +
+
+        'Semak sambungan internet.' +
+
         '</div>';
 
 
-      delete window[
-        callbackName
-      ];
 
-
-      script.remove();
+      cleanupJsonp(
+        callbackName,
+        script
+      );
 
 
       prepareNextScan();
@@ -648,18 +1282,59 @@ function sendToGoogleSheets(qrValue) {
 
 
 // =================================================
+// CLEANUP JSONP
+// =================================================
+
+function cleanupJsonp(
+  callbackName,
+  script
+) {
+
+
+  try {
+
+    delete window[
+      callbackName
+    ];
+
+  }
+
+  catch (error) {}
+
+
+  try {
+
+    script.remove();
+
+  }
+
+  catch (error) {}
+
+}
+
+
+
+// =================================================
 // PAPARKAN KEPUTUSAN
 // =================================================
 
-function showResult(data) {
+function showResult(
+  data
+) {
 
 
+  // =================================================
+  // KEHADIRAN BERJAYA
+  // =================================================
 
-  // -----------------------------
-  // BERJAYA
-  // -----------------------------
+  if (
+    data &&
+    data.success
+  ) {
 
-  if (data.success) {
+
+    soundSuccess();
+
 
 
     document.getElementById(
@@ -676,38 +1351,52 @@ function showResult(data) {
 
       '<div class="name">' +
 
-      escapeHtml(data.nama) +
+      escapeHtml(
+        data.nama
+      ) +
 
       '</div>' +
 
       '<div class="class">' +
 
-      escapeHtml(data.kelas) +
+      escapeHtml(
+        data.kelas
+      ) +
 
       '</div>' +
 
       '<div class="status">' +
 
-      escapeHtml(data.status) +
+      escapeHtml(
+        data.status
+      ) +
 
       '</div>' +
 
       '<div class="time">' +
 
-      escapeHtml(data.masa) +
+      escapeHtml(
+        data.masa
+      ) +
 
       '</div>';
 
 
 
-    if (navigator.vibrate) {
+    // Getaran pendek
+    if (
+      navigator.vibrate
+    ) {
 
-      navigator.vibrate(150);
+      navigator.vibrate(
+        150
+      );
 
     }
 
 
     prepareNextScan();
+
 
     return;
 
@@ -715,11 +1404,18 @@ function showResult(data) {
 
 
 
-  // -----------------------------
+  // =================================================
   // DUPLIKAT
-  // -----------------------------
+  // =================================================
 
-  if (data.duplicate) {
+  if (
+    data &&
+    data.duplicate
+  ) {
+
+
+    soundDuplicate();
+
 
 
     document.getElementById(
@@ -736,7 +1432,9 @@ function showResult(data) {
 
       '<div class="name">' +
 
-      escapeHtml(data.nama) +
+      escapeHtml(
+        data.nama
+      ) +
 
       '</div>' +
 
@@ -756,10 +1454,17 @@ function showResult(data) {
 
 
 
-    if (navigator.vibrate) {
+    // Getaran dua kali
+    if (
+      navigator.vibrate
+    ) {
 
       navigator.vibrate(
-        [100,80,100]
+        [
+          100,
+          80,
+          100
+        ]
       );
 
     }
@@ -767,15 +1472,20 @@ function showResult(data) {
 
     prepareNextScan();
 
+
     return;
 
   }
 
 
 
-  // -----------------------------
-  // QR TIDAK SAH
-  // -----------------------------
+  // =================================================
+  // QR / ID TIDAK SAH
+  // =================================================
+
+  soundError();
+
+
 
   document.getElementById(
     "result"
@@ -792,11 +1502,38 @@ function showResult(data) {
     '<div class="time">' +
 
     escapeHtml(
-      data.message ||
+
+      data &&
+      data.message
+
+      ?
+
+      data.message
+
+      :
+
       "ID tidak dijumpai"
+
     ) +
 
     '</div>';
+
+
+
+  if (
+    navigator.vibrate
+  ) {
+
+    navigator.vibrate(
+      [
+        200,
+        100,
+        200
+      ]
+    );
+
+  }
+
 
 
   prepareNextScan();
@@ -806,11 +1543,14 @@ function showResult(data) {
 
 
 // =================================================
-// SEDIA UNTUK SCAN SETERUSNYA
+// SEDIA UNTUK MURID SETERUSNYA
 // =================================================
 
 function prepareNextScan() {
 
+
+  // Paparkan keputusan
+  // selama 1.5 saat
 
   setTimeout(
     function() {
@@ -820,7 +1560,9 @@ function prepareNextScan() {
         false;
 
 
+
       readyForNextScan();
+
 
 
       try {
@@ -840,7 +1582,9 @@ function prepareNextScan() {
 
       catch (error) {
 
-        console.log(error);
+        console.log(
+          error
+        );
 
       }
 
@@ -856,7 +1600,7 @@ function prepareNextScan() {
 
 
 // =================================================
-// PAPARAN SEDIA
+// PAPARAN SCANNER READY
 // =================================================
 
 function readyForNextScan() {
@@ -879,10 +1623,12 @@ function readyForNextScan() {
 
 
 // =================================================
-// KESELAMATAN TEKS
+// KESELAMATAN PAPARAN TEKS
 // =================================================
 
-function escapeHtml(text) {
+function escapeHtml(
+  text
+) {
 
 
   const div =
@@ -893,7 +1639,9 @@ function escapeHtml(text) {
 
   div.textContent =
     text == null
+
       ? ""
+
       : String(text);
 
 
