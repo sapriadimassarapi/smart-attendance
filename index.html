@@ -7,7 +7,7 @@
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
   >
 
   <meta
@@ -31,6 +31,14 @@
     }
 
 
+    html,
+    body {
+
+      min-height: 100%;
+
+    }
+
+
     body {
 
       margin: 0;
@@ -46,34 +54,47 @@
 
       text-align: center;
 
+      min-height: 100svh;
+
+      overflow-x: hidden;
+
     }
 
 
     .container {
 
-      max-width: 520px;
+      width: 100%;
+
+      max-width: 430px;
 
       margin: auto;
 
-      padding: 25px 18px 40px;
+      padding:
+        max(10px, env(safe-area-inset-top))
+        12px
+        max(10px, env(safe-area-inset-bottom));
+
+      min-height: 100svh;
 
     }
 
 
     .logo {
 
-      font-size: 45px;
+      font-size: 30px;
 
-      margin-top: 5px;
+      line-height: 1;
+
+      margin: 0 0 2px;
 
     }
 
 
     h1 {
 
-      margin: 5px 0;
+      margin: 0;
 
-      font-size: 30px;
+      font-size: clamp(22px, 6vw, 27px);
 
       font-weight: 900;
 
@@ -84,11 +105,11 @@
 
       color: #777;
 
-      font-size: 14px;
+      font-size: 11px;
 
       letter-spacing: 1px;
 
-      margin-bottom: 25px;
+      margin: 2px 0 8px;
 
     }
 
@@ -97,23 +118,23 @@
 
       width: 100%;
 
-      padding: 17px;
+      padding: 12px;
 
       border: none;
 
-      border-radius: 14px;
+      border-radius: 12px;
 
       background: #17356b;
 
       color: white;
 
-      font-size: 18px;
+      font-size: 16px;
 
       font-weight: bold;
 
       cursor: pointer;
 
-      margin-bottom: 18px;
+      margin-bottom: 8px;
 
     }
 
@@ -127,28 +148,45 @@
 
     #reader {
 
-      width: 100%;
+      width: min(100%, 44svh);
 
-      border-radius: 18px;
+      aspect-ratio: 1 / 1;
+
+      margin: 0 auto;
+
+      border-radius: 16px;
 
       overflow: hidden;
 
       background: white;
+
+      box-shadow:
+        0 4px 16px
+        rgba(0,0,0,0.10);
+
+    }
+
+
+    #reader video {
+
+      border-radius: 16px;
 
     }
 
 
     #result {
 
-      margin-top: 20px;
+      width: 100%;
 
-      min-height: 150px;
+      margin-top: 8px;
+
+      min-height: 125px;
 
       background: white;
 
-      border-radius: 18px;
+      border-radius: 16px;
 
-      padding: 20px;
+      padding: 10px 12px;
 
       display: flex;
 
@@ -167,16 +205,16 @@
 
     .icon {
 
-      font-size: 40px;
+      font-size: 26px;
 
-      margin-bottom: 8px;
+      margin-bottom: 3px;
 
     }
 
 
     .title {
 
-      font-size: 22px;
+      font-size: 17px;
 
       font-weight: bold;
 
@@ -185,27 +223,31 @@
 
     .name {
 
-      font-size: 32px;
+      font-size: clamp(21px, 7vw, 28px);
 
       font-weight: 900;
 
-      margin: 8px 0;
+      line-height: 1.08;
+
+      margin: 4px 0;
+
+      overflow-wrap: anywhere;
 
     }
 
 
     .class {
 
-      font-size: 18px;
+      font-size: 15px;
 
     }
 
 
     .status {
 
-      margin-top: 8px;
+      margin-top: 4px;
 
-      font-size: 18px;
+      font-size: 15px;
 
       font-weight: bold;
 
@@ -214,18 +256,18 @@
 
     .time {
 
-      margin-top: 5px;
+      margin-top: 3px;
 
       color: #777;
 
-      font-size: 15px;
+      font-size: 13px;
 
     }
 
 
     .waiting {
 
-      font-size: 18px;
+      font-size: 15px;
 
       color: #666;
 
@@ -234,18 +276,18 @@
 
     .small {
 
-      margin-top: 16px;
+      margin-top: 6px;
 
       color: #8a8f9c;
 
-      font-size: 12px;
+      font-size: 11px;
 
     }
 
 
     #settingsButton {
 
-      margin-top: 15px;
+      margin-top: 3px;
 
       background: none;
 
@@ -257,7 +299,32 @@
 
       cursor: pointer;
 
-      font-size: 12px;
+      font-size: 11px;
+
+    }
+
+
+    @media (max-height: 720px) {
+
+      .logo {
+        display: none;
+      }
+
+
+      #reader {
+        width: min(100%, 40svh);
+      }
+
+
+      #result {
+        min-height: 112px;
+        padding: 8px 10px;
+      }
+
+
+      .small {
+        display: none;
+      }
 
     }
 
@@ -373,6 +440,8 @@ let cameraRunning = false;
 
 let audioContext = null;
 
+let audioUnlocked = false;
+
 
 
 function initAudio() {
@@ -399,6 +468,34 @@ function initAudio() {
 
     }
 
+
+    // Buka kebenaran audio semasa sentuhan pengguna,
+    // khususnya untuk Safari pada iPhone.
+    if (!audioUnlocked) {
+
+      const silentBuffer =
+        audioContext.createBuffer(
+          1,
+          1,
+          22050
+        );
+
+      const silentSource =
+        audioContext.createBufferSource();
+
+      silentSource.buffer =
+        silentBuffer;
+
+      silentSource.connect(
+        audioContext.destination
+      );
+
+      silentSource.start(0);
+
+      audioUnlocked = true;
+
+    }
+
   }
 
   catch (error) {
@@ -421,7 +518,8 @@ function initAudio() {
 function playTone(
   frequency,
   duration,
-  volume = 0.25
+  volume = 0.60,
+  type = "square"
 ) {
 
 
@@ -456,32 +554,57 @@ function playTone(
 
 
     oscillator.type =
-      "sine";
+      type;
 
 
     oscillator.frequency.value =
       frequency;
 
 
+    const now =
+      audioContext.currentTime;
+
+
+    // Serangan pantas dan pelepasan lembut menghasilkan
+    // bunyi yang lebih kuat tanpa bunyi pecah di hujung.
+    gain.gain.setValueAtTime(
+      0.001,
+      now
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+      volume,
+      now + 0.01
+    );
+
+
     gain.gain.setValueAtTime(
       volume,
-      audioContext.currentTime
+      now +
+      Math.max(
+        duration - 0.05,
+        0.02
+      )
     );
 
 
     gain.gain.exponentialRampToValueAtTime(
       0.001,
-      audioContext.currentTime +
+      now +
       duration
     );
 
 
-    oscillator.start();
+    oscillator.start(
+      now
+    );
 
 
     oscillator.stop(
-      audioContext.currentTime +
-      duration
+      now +
+      duration +
+      0.02
     );
 
 
@@ -507,12 +630,13 @@ function playTone(
 function soundSuccess() {
 
 
-  // Ding dua nada yang lembut
+  // Dua nada tinggi dan jelas.
 
   playTone(
     880,
-    0.12,
-    0.30
+    0.14,
+    0.58,
+    "square"
   );
 
 
@@ -520,14 +644,15 @@ function soundSuccess() {
     function() {
 
       playTone(
-        1175,
-        0.18,
-        0.25
+        1320,
+        0.22,
+        0.65,
+        "square"
       );
 
     },
 
-    100
+    110
 
   );
 
@@ -544,8 +669,9 @@ function soundDuplicate() {
 
   playTone(
     550,
-    0.12,
-    0.25
+    0.16,
+    0.58,
+    "triangle"
   );
 
 
@@ -554,13 +680,14 @@ function soundDuplicate() {
 
       playTone(
         550,
-        0.12,
-        0.25
+        0.16,
+        0.58,
+        "triangle"
       );
 
     },
 
-    180
+    170
 
   );
 
@@ -576,9 +703,27 @@ function soundError() {
 
 
   playTone(
-    230,
-    0.35,
-    0.25
+    240,
+    0.20,
+    0.65,
+    "sawtooth"
+  );
+
+
+  setTimeout(
+    function() {
+
+      playTone(
+        170,
+        0.30,
+        0.68,
+        "sawtooth"
+      );
+
+    },
+
+    160
+
   );
 
 }
@@ -782,88 +927,25 @@ async function startScanner() {
 
 
     // =================================================
-    // DAPATKAN SENARAI KAMERA
-    // =================================================
-
-    const cameras =
-      await Html5Qrcode.getCameras();
-
-
-
-    if (
-      !cameras ||
-      cameras.length === 0
-    ) {
-
-
-      throw new Error(
-        "Tiada kamera dijumpai."
-      );
-
-    }
-
-
-
-    // =================================================
-    // PILIH KAMERA BELAKANG
-    // =================================================
-
-    let selectedCamera =
-      cameras[
-        cameras.length - 1
-      ];
-
-
-
-    const rearCamera =
-      cameras.find(
-        camera => {
-
-
-          const label =
-            (
-              camera.label || ""
-            ).toLowerCase();
-
-
-
-          return (
-
-            label.includes(
-              "back"
-            ) ||
-
-            label.includes(
-              "rear"
-            ) ||
-
-            label.includes(
-              "environment"
-            )
-
-          );
-
-        }
-      );
-
-
-
-    if (rearCamera) {
-
-      selectedCamera =
-        rearCamera;
-
-    }
-
-
-
-    // =================================================
-    // CIPTA QR SCANNER
+    // CIPTA QR SCANNER - QR SAHAJA UNTUK PRESTASI
     // =================================================
 
     scanner =
       new Html5Qrcode(
-        "reader"
+        "reader",
+        {
+
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE
+          ],
+
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+          },
+
+          verbose: false
+
+        }
       );
 
 
@@ -875,24 +957,43 @@ async function startScanner() {
     await scanner.start(
 
 
-      selectedCamera.id,
+      {
+        facingMode: "environment"
+      },
 
 
       {
 
-        fps: 10,
+        fps: 20,
 
 
-        qrbox: {
+        qrbox: function(
+          viewfinderWidth,
+          viewfinderHeight
+        ) {
 
-          width: 250,
+          const size =
+            Math.floor(
+              Math.min(
+                viewfinderWidth,
+                viewfinderHeight
+              ) * 0.78
+            );
 
-          height: 250
+          return {
+            width: size,
+            height: size
+          };
 
         },
 
 
-        aspectRatio: 1.0
+        aspectRatio: 1.0,
+
+
+        // Kamera belakang tidak menghasilkan imej cermin.
+        // Ini mengurangkan kerja decoder.
+        disableFlip: true
 
       },
 
@@ -908,6 +1009,37 @@ async function startScanner() {
 
 
     );
+
+
+
+    // Cuba gunakan fokus berterusan jika telefon menyokongnya.
+    // Jika tidak disokong, scanner tetap berjalan seperti biasa.
+    try {
+
+      if (
+        scanner.applyVideoConstraints
+      ) {
+
+        await scanner.applyVideoConstraints({
+          advanced: [
+            {
+              focusMode: "continuous"
+            }
+          ]
+        });
+
+      }
+
+    }
+
+    catch (focusError) {
+
+      console.log(
+        "Fokus berterusan tidak disokong:",
+        focusError
+      );
+
+    }
 
 
 
@@ -996,10 +1128,11 @@ function onScanSuccess(
 
 
 
-  // Pause kamera sementara
+  // Hentikan decoder sahaja; video kekal hidup supaya
+  // imbasan seterusnya boleh bermula dengan lebih cepat.
   try {
 
-    scanner.pause(true);
+    scanner.pause(false);
 
   }
 
@@ -1550,7 +1683,7 @@ function prepareNextScan() {
 
 
   // Paparkan keputusan
-  // selama 1.5 saat
+  // selama 0.9 saat
 
   setTimeout(
     function() {
@@ -1591,7 +1724,7 @@ function prepareNextScan() {
 
     },
 
-    1500
+    900
 
   );
 
