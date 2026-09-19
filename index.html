@@ -1098,7 +1098,7 @@ async function stopScanner() {
 let lastDecodedText = "";
 
 let lastDecodedAt = 0;
-const recordedTokens = new Set();
+const recordedTokens = new Map();
 
 
 
@@ -1665,7 +1665,16 @@ function onScanSuccess(
     return;
   }
 
-  if (recordedTokens.has(decodedText)) return;
+  const recorded = recordedTokens.get(decodedText);
+  if (recorded) {
+    const now = Date.now();
+    if (now - recorded.lastSeenAt >= 1200) {
+      showResult({success:false,duplicate:true,nama:recorded.nama,kelas:recorded.kelas,masa:recorded.masa},decodedText);
+    } else {
+      recorded.lastSeenAt = now;
+    }
+    return;
+  }
 
 
   if (processing) {
@@ -2001,7 +2010,9 @@ function showResult(data, qrValue) {
 
   result.classList.remove("success", "duplicate");
   if (data && (data.success || data.duplicate)) {
-    if (qrValue) recordedTokens.add(String(qrValue).trim());
+    if (qrValue) recordedTokens.set(String(qrValue).trim(), {
+      nama:data.nama,kelas:data.kelas,masa:data.masa,lastSeenAt:Date.now()
+    });
     if (data.duplicate) soundDuplicate();
     else soundSuccess();
     result.classList.add(data.duplicate ? "duplicate" : "success");
