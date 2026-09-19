@@ -14,6 +14,7 @@
     name="theme-color"
     content="#17356b"
   >
+  <meta name="referrer" content="no-referrer">
 
   <title>Smart Attendance</title>
 
@@ -793,6 +794,12 @@
 
   </button>
 
+  <label for="scanDirection" style="display:block;margin:12px 0 6px;font-weight:bold">Arah kehadiran murid</label>
+  <select id="scanDirection" style="width:100%;padding:12px;border:1px solid #b8c8d8;border-radius:8px;background:white;font:inherit">
+    <option value="Masuk">Masuk</option>
+    <option value="Keluar">Keluar</option>
+  </select>
+
 
 
   <div
@@ -835,12 +842,6 @@
   </div>
 
 
-  <button
-    id="settingsButton"
-    onclick="ubahApiUrl()"
-  >
-    Tetapan sistem
-  </button>
 
 
   <section class="scan-info" aria-label="Panduan imbasan">
@@ -888,14 +889,29 @@
 
 
 // =================================================
-// API URL
-// Disimpan dalam browser
+// Sesi sementara dibekalkan oleh menu Kehadiran pelajar dalam Portal Guru.
 // =================================================
+const launchParams = new URLSearchParams(location.hash.slice(1));
+const API_URL = launchParams.get("portal") || "";
+const SCANNER_SESSION = launchParams.get("session") || "";
+const validLaunch = (() => {
+  try {
+    const url = new URL(API_URL);
+    return url.protocol === "https:" &&
+      url.hostname === "script.google.com" &&
+      /^\/macros\/s\/[^/]+\/exec$/.test(url.pathname) &&
+      /^[a-f0-9-]{36}$/i.test(SCANNER_SESSION);
+  } catch (error) {
+    return false;
+  }
+})();
 
-let API_URL =
-  localStorage.getItem(
-    "smartAttendanceApiUrl"
-  ) || "";
+if (!validLaunch) {
+  document.getElementById("startButton").disabled = true;
+  document.getElementById("result").innerHTML =
+    '<div class="icon">❌</div><div class="title">SESI SCANNER TIADA</div>' +
+    '<div class="time">Buka melalui menu Kehadiran pelajar dalam Portal Guru.</div>';
+}
 
 
 
@@ -1211,152 +1227,7 @@ function soundError() {
 
 
 
-// =================================================
-// SIMPAN / UBAH URL APPS SCRIPT
-// =================================================
-
-function dapatkanApiUrl() {
-
-
-  if (
-    API_URL &&
-    API_URL.includes(
-      "script.google.com"
-    ) &&
-    API_URL.endsWith(
-      "/exec"
-    )
-  ) {
-
-    return true;
-
-  }
-
-
-  const url =
-    prompt(
-
-      "Masukkan URL Google Apps Script Smart Attendance.\n\n" +
-
-      "Pastikan URL berakhir dengan /exec"
-
-    );
-
-
-  if (!url) {
-
-    return false;
-
-  }
-
-
-  const cleanUrl =
-    url.trim();
-
-
-  if (
-    !cleanUrl.includes(
-      "script.google.com"
-    ) ||
-    !cleanUrl.endsWith(
-      "/exec"
-    )
-  ) {
-
-
-    alert(
-      "URL tidak sah.\n\n" +
-      "Pastikan URL Google Apps Script berakhir dengan /exec"
-    );
-
-
-    return false;
-
-  }
-
-
-  API_URL =
-    cleanUrl;
-
-
-  localStorage.setItem(
-    "smartAttendanceApiUrl",
-    API_URL
-  );
-
-
-  return true;
-
-}
-
-
-
-// =================================================
-// TUKAR URL APPS SCRIPT
-// =================================================
-
-function ubahApiUrl() {
-
-
-  const url =
-    prompt(
-
-      "Masukkan URL Apps Script /exec:",
-
-      API_URL
-
-    );
-
-
-  if (!url) {
-
-    return;
-
-  }
-
-
-  const cleanUrl =
-    url.trim();
-
-
-  if (
-    !cleanUrl.includes(
-      "script.google.com"
-    ) ||
-    !cleanUrl.endsWith(
-      "/exec"
-    )
-  ) {
-
-
-    alert(
-      "URL tidak sah."
-    );
-
-
-    return;
-
-  }
-
-
-  API_URL =
-    cleanUrl;
-
-
-  localStorage.setItem(
-    "smartAttendanceApiUrl",
-    API_URL
-  );
-
-
-  alert(
-    "Tetapan Smart Attendance berjaya disimpan."
-  );
-
-}
-
-
-
+// URL API dan sesi hanya diterima daripada Portal Guru.
 // =================================================
 // MULAKAN KAMERA
 // =================================================
@@ -1368,11 +1239,11 @@ async function startScanner() {
   initAudio();
 
 
-  // Pastikan API telah dimasukkan
-  if (!dapatkanApiUrl()) {
-
+  if (!validLaunch) {
+    document.getElementById("result").innerHTML =
+      '<div class="icon">❌</div><div class="title">SESI SCANNER TIADA</div>' +
+      '<div class="time">Buka melalui menu Kehadiran pelajar dalam Portal Guru.</div>';
     return;
-
   }
 
 
@@ -1678,11 +1549,8 @@ function sendToGoogleSheets(
 ) {
 
 
-  const callbackName =
-
-    "smartAttendanceCallback_" +
-
-    Date.now();
+  const callbackName = "scanCallback_" + crypto.randomUUID().replace(/-/g, "");
+  const requestId = crypto.randomUUID();
 
 
 
@@ -1752,7 +1620,7 @@ function sendToGoogleSheets(
 
       },
 
-      10000
+      20000
 
     );
 
@@ -1813,32 +1681,19 @@ function sendToGoogleSheets(
   // BINA URL
   // =================================================
 
-  const url =
-
-    API_URL +
-
-    "?action=scan" +
-
-    "&id=" +
-
-    encodeURIComponent(
-      qrValue
-    ) +
-
-    "&callback=" +
-
-    encodeURIComponent(
-      callbackName
-    ) +
-
-    "&t=" +
-
-    Date.now();
+  const url = new URL(API_URL);
+  url.search = new URLSearchParams({
+    action: "scanStudent",
+    session: SCANNER_SESSION,
+    token: qrValue,
+    direction: document.getElementById("scanDirection").value,
+    requestId,
+    callback: callbackName
+  }).toString();
 
 
 
-  script.src =
-    url;
+  script.src = url.href;
 
 
 
@@ -1957,7 +1812,7 @@ function showResult(
 
   if (
     data &&
-    data.success
+    data.success && !data.duplicate
   ) {
 
 
@@ -1980,15 +1835,7 @@ function showResult(
       '<div class="name">' +
 
       escapeHtml(
-        data.nama
-      ) +
-
-      '</div>' +
-
-      '<div class="class">' +
-
-      escapeHtml(
-        data.kelas
+        data.message || "Kehadiran murid direkod."
       ) +
 
       '</div>' +
@@ -1996,7 +1843,7 @@ function showResult(
       '<div class="status">' +
 
       escapeHtml(
-        data.status
+        document.getElementById("scanDirection").value
       ) +
 
       '</div>' +
@@ -2004,7 +1851,7 @@ function showResult(
       '<div class="time">' +
 
       escapeHtml(
-        data.masa
+        new Date().toLocaleTimeString("ms-MY")
       ) +
 
       '</div>';
@@ -2061,7 +1908,7 @@ function showResult(
       '<div class="name">' +
 
       escapeHtml(
-        data.nama
+        data.message || "Imbasan sudah direkod."
       ) +
 
       '</div>' +
