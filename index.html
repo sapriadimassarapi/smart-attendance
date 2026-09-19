@@ -202,11 +202,12 @@
 
     .reader-shell {
 
-      width: min(100%, 44svh);
+      width: calc(100% + 24px);
+      max-width: 430px;
 
       aspect-ratio: 1 / 1;
 
-      margin: 0 auto;
+      margin: 0 -12px;
 
       position: relative;
 
@@ -267,7 +268,7 @@
 
       left: 50%;
 
-      width: 72%;
+      width: 88%;
 
       aspect-ratio: 1 / 1;
 
@@ -700,9 +701,7 @@
       }
 
 
-      .reader-shell {
-        width: min(100%, 40svh);
-      }
+      .reader-shell { width: calc(100% + 24px); }
 
 
       #result {
@@ -786,6 +785,17 @@
       box-shadow: 0 10px 34px rgba(15,64,79,.20), 0 0 0 2px rgba(69,199,47,.38);
     }
 
+    .reader-shell.scanning::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 21;
+      background: linear-gradient(110deg, transparent 42%, rgba(255,255,255,.10) 49%, transparent 56%);
+      transform: translateX(-130%);
+      animation: cameraShine 6s ease-in-out infinite;
+    }
+
     .reader-shell.scanning .scan-corner {
       box-shadow: 0 0 14px rgba(97,226,72,.48);
       animation: cornerGlow 2.4s ease-in-out infinite;
@@ -795,6 +805,25 @@
 
     #result > * { animation: resultIn 260ms ease-out both; }
 
+    #result.success {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(48,169,114,.45);
+      box-shadow: 0 9px 26px rgba(17,113,84,.16), 0 0 18px rgba(77,209,123,.18);
+    }
+
+    #result.success::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(110deg, transparent 35%, rgba(182,255,215,.42) 50%, transparent 65%);
+      transform: translateX(-130%);
+      animation: successShine 850ms ease-out 1;
+    }
+
+    #result.success .icon { filter: drop-shadow(0 0 8px rgba(50,189,93,.48)); }
+
     .scan-info {
       animation: settleIn 680ms ease-out both;
       transition: box-shadow 250ms ease;
@@ -803,6 +832,7 @@
     .scan-info::before {
       transform: translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 0) rotate(-8deg);
       transition: transform 250ms ease-out;
+      animation: starPulse 3.8s ease-in-out infinite;
     }
 
     .scan-tip { transition: background-color 180ms ease, transform 180ms ease; }
@@ -821,6 +851,15 @@
     @keyframes cornerGlow {
       50% { box-shadow: 0 0 20px rgba(97,226,72,.9); }
     }
+
+    @keyframes cameraShine {
+      0%, 64%, 100% { transform: translateX(-130%); }
+      84% { transform: translateX(130%); }
+    }
+
+    @keyframes successShine { to { transform: translateX(130%); } }
+
+    @keyframes starPulse { 50% { opacity: .6; } }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -1024,6 +1063,7 @@ async function stopScanner() {
 let lastDecodedText = "";
 
 let lastDecodedAt = 0;
+const recordedTokens = new Set();
 
 
 
@@ -1409,7 +1449,7 @@ async function startScanner() {
 
       {
 
-        fps: 20,
+        fps: 24,
 
 
         qrbox: function(
@@ -1422,7 +1462,7 @@ async function startScanner() {
               Math.min(
                 viewfinderWidth,
                 viewfinderHeight
-              ) * 0.78
+          ) * 0.9
             );
 
           return {
@@ -1590,6 +1630,8 @@ function onScanSuccess(
     return;
   }
 
+  if (recordedTokens.has(decodedText)) return;
+
 
   if (processing) {
 
@@ -1617,6 +1659,8 @@ function onScanSuccess(
 
   processing =
     true;
+
+  document.getElementById("result").classList.remove("success");
 
 
 
@@ -1765,9 +1809,7 @@ function sendToGoogleSheets(
       try {
 
 
-        showResult(
-          data
-        );
+        showResult(data, qrValue);
 
 
       }
@@ -1911,10 +1953,8 @@ function cleanupJsonp(
 // PAPARKAN KEPUTUSAN
 // =================================================
 
-function showResult(
-  data
-) {
-
+function showResult(data, qrValue) {
+  const result = document.getElementById("result");
   if (data && !data.success && /Sesi scanner (tidak sah|telah tamat)/i.test(data.message || "")) {
     validLaunch = false;
     SCANNER_SESSION = "";
@@ -1924,214 +1964,29 @@ function showResult(
     initGoogleLogin();
   }
 
-
-  // =================================================
-  // KEHADIRAN BERJAYA
-  // =================================================
-
-  if (
-    data &&
-    data.success && !data.duplicate
-  ) {
-
-
-    soundSuccess();
-
-
-
-    document.getElementById(
-      "result"
-    ).innerHTML =
-
+  result.classList.remove("success");
+  if (data && data.success) {
+    if (qrValue) recordedTokens.add(String(qrValue).trim());
+    if (data.duplicate) soundDuplicate();
+    else soundSuccess();
+    result.classList.add("success");
+    result.innerHTML =
       '<div class="icon">✅</div>' +
-
-      '<div class="title">' +
-
-      'KEHADIRAN DIREKOD' +
-
-      '</div>' +
-
-      '<div class="name">' +
-
-      escapeHtml(
-        data.message || "Kehadiran murid direkod."
-      ) +
-
-      '</div>' +
-
-      '<div class="status">' +
-
-      escapeHtml(
-        "Masuk"
-      ) +
-
-      '</div>' +
-
-      '<div class="time">' +
-
-      escapeHtml(
-        new Date().toLocaleTimeString("ms-MY")
-      ) +
-
-      '</div>';
-
-
-
-    // Getaran pendek
-    if (
-      navigator.vibrate
-    ) {
-
-      navigator.vibrate(
-        150
-      );
-
-    }
-
-
+      '<div class="title">Kehadiran direkod!</div>' +
+      '<div class="name">' + escapeHtml(data.nama || "Pelajar") + '</div>' +
+      '<div class="status">Pagi</div>';
+    if (navigator.vibrate) navigator.vibrate(data.duplicate ? [100, 80, 100] : 150);
     prepareNextScan();
-
-
     return;
-
   }
-
-
-
-  // =================================================
-  // DUPLIKAT
-  // =================================================
-
-  if (
-    data &&
-    data.duplicate
-  ) {
-
-
-    soundDuplicate();
-
-
-
-    document.getElementById(
-      "result"
-    ).innerHTML =
-
-      '<div class="icon">⚠️</div>' +
-
-      '<div class="title">' +
-
-      'SUDAH DIREKOD' +
-
-      '</div>' +
-
-      '<div class="name">' +
-
-      escapeHtml(
-        data.message || "Imbasan sudah direkod."
-      ) +
-
-      '</div>' +
-
-      '<div class="class">' +
-
-      escapeHtml(
-        data.kelas || ""
-      ) +
-
-      '</div>' +
-
-      '<div class="time">' +
-
-      'Kehadiran hari ini sudah direkod.' +
-
-      '</div>';
-
-
-
-    // Getaran dua kali
-    if (
-      navigator.vibrate
-    ) {
-
-      navigator.vibrate(
-        [
-          100,
-          80,
-          100
-        ]
-      );
-
-    }
-
-
-    prepareNextScan();
-
-
-    return;
-
-  }
-
-
-
-  // =================================================
-  // Ralat pelayan boleh berpunca daripada sesi, akses, kalendar atau QR.
-  // =================================================
 
   soundError();
-
-
-
-  document.getElementById(
-    "result"
-  ).innerHTML =
-
+  result.innerHTML =
     '<div class="icon">❌</div>' +
-
-    '<div class="title">' +
-
-    'IMBASAN TIDAK DIREKOD' +
-
-    '</div>' +
-
-    '<div class="time">' +
-
-    escapeHtml(
-
-      data &&
-      data.message
-
-      ?
-
-      data.message
-
-      :
-
-      "Semak sesi scanner dan cuba lagi."
-
-    ) +
-
-    '</div>';
-
-
-
-  if (
-    navigator.vibrate
-  ) {
-
-    navigator.vibrate(
-      [
-        200,
-        100,
-        200
-      ]
-    );
-
-  }
-
-
-
+    '<div class="title">IMBASAN TIDAK DIREKOD</div>' +
+    '<div class="time">' + escapeHtml(data && data.message ? data.message : "Semak sesi scanner dan cuba lagi.") + '</div>';
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
   prepareNextScan();
-
 }
 
 
@@ -2163,7 +2018,7 @@ function prepareNextScan() {
 
     },
 
-    350
+    120
 
   );
 
