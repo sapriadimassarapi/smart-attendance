@@ -875,6 +875,13 @@
     #scannerPin { margin:6px 0 12px; }
     #result .class { font-weight:700; }
     #result .time { margin-top:8px; }
+    #result.success { min-height: 230px; padding: 20px 14px; color:#1d283a; text-align:center; }
+    #result.success .icon { font-size:38px; line-height:1; margin-bottom:12px; }
+    #result.success .title { font-size:clamp(18px, 5vw, 24px); line-height:1.15; }
+    #result.success .name { font-size:clamp(25px, 7.5vw, 38px); line-height:1.07; margin:8px 0; }
+    #result.success .class { font-size:clamp(17px, 5vw, 22px); font-weight:500; text-transform:uppercase; }
+    #result.success .status { font-size:19px; margin-top:10px; }
+    #result.success .time { font-size:17px; margin-top:5px; color:#6b7280; }
   </style>
 
 </head>
@@ -1011,14 +1018,14 @@
 
   </section>
 
-  <section id="manualPanel" class="manual-panel" hidden aria-label="Rekod kehadiran tanpa QR">
-    <h2>Tanpa QR</h2>
+  <section id="manualPanel" class="manual-panel" aria-label="Rekod kehadiran tanpa QR">
+    <h2>Rekod tanpa QR</h2>
     <label for="manualClass">Kelas</label>
-    <select id="manualClass"><option value="">Pilih kelas</option></select>
+    <select id="manualClass" disabled><option value="">Log masuk untuk memuatkan kelas</option></select>
     <label for="manualStudent">Nama murid</label>
     <select id="manualStudent" disabled><option value="">Pilih nama</option></select>
     <button id="manualSubmit" type="button" disabled>Rekod kehadiran</button>
-    <p id="manualStatus" role="status"></p>
+    <p id="manualStatus" role="status">Pilih akaun Google untuk memuatkan senarai murid.</p>
   </section>
 
 
@@ -1995,10 +2002,11 @@ function showResult(data, qrValue) {
     result.classList.add("success");
     result.innerHTML =
       '<div class="icon">✅</div>' +
-      '<div class="title">Kehadiran berjaya direkod!</div>' +
+      '<div class="title">KEHADIRAN DIREKOD</div>' +
       '<div class="name">' + escapeHtml(data.nama || "Pelajar") + '</div>' +
       '<div class="class">' + escapeHtml(data.kelas || "") + '</div>' +
-      '<div class="time">' + escapeHtml(data.masa || "") + ' Pagi</div>';
+      '<div class="status">HADIR</div>' +
+      '<div class="time">' + escapeHtml(data.masa || "") + '</div>';
     if (navigator.vibrate) navigator.vibrate(data.duplicate ? [100, 80, 100] : 150);
     prepareNextScan();
     return;
@@ -2105,16 +2113,18 @@ let manualStudents = [];
 async function loadManualRoster() {
   if (!validLaunch) return;
   const status = document.getElementById("manualStatus");
+  const select = document.getElementById("manualClass");
+  select.disabled = true;
+  status.textContent = "Memuatkan kelas dan nama murid...";
   try {
     const data = await scannerApi("scannerRoster", {session: SCANNER_SESSION});
     if (!data.success) throw new Error(data.message || "Senarai murid tidak dapat dimuatkan.");
     manualStudents = data.students || [];
-    const select = document.getElementById("manualClass");
     select.replaceChildren(new Option("Pilih kelas", ""), ...(data.classes || []).map(k => new Option(k.nama, k.kelasId)));
-    document.getElementById("manualPanel").hidden = false;
-    status.textContent = "";
+    select.disabled = !(data.classes || []).length;
+    status.textContent = select.disabled ? "Tiada kelas aktif ditemui. Semak tetapan tahun dan kelas." : "";
   } catch (error) {
-    status.textContent = error.message || "Senarai murid tidak tersedia.";
+    status.textContent = (error.message || "Senarai murid tidak tersedia.") + " Semak penerbitan API scanner dan muat semula halaman.";
   }
 }
 document.getElementById("manualClass").addEventListener("change", function() {
@@ -2131,13 +2141,15 @@ document.getElementById("manualSubmit").addEventListener("click", async function
   if (!muridId || !validLaunch) return;
   this.disabled = true;
   const status = document.getElementById("manualStatus");
+  let recorded = false;
   status.textContent = "Merekod kehadiran...";
   try {
     const data = await scannerApi("scanStudent", {session:SCANNER_SESSION,muridId,direction:"Masuk",requestId:crypto.randomUUID()});
     showResult(data);
+    recorded = !!data.success;
     status.textContent = data.success ? "" : data.message;
   } catch (error) { status.textContent = error.message || "Rekod gagal."; }
-  finally { this.disabled = false; }
+  finally { this.disabled = recorded; }
 });
 function scannerApi(action, values = {}) {
   return new Promise((resolve, reject) => {
