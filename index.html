@@ -23,6 +23,7 @@
   <script
     src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">
   </script>
+  <script src="https://accounts.google.com/gsi/client" async></script>
 
 
   <style>
@@ -743,6 +744,88 @@
 
     }
 
+    #startButton[hidden] { display: none; }
+    #loginPanel[hidden] { display: none; }
+
+    #loginPanel {
+      background: #fff;
+      border-left: 4px solid #198069;
+      border-radius: 8px;
+      padding: 14px;
+      margin: 0 0 10px;
+      box-shadow: 0 5px 18px rgba(17,45,61,.08);
+      animation: settleIn 400ms ease-out both;
+    }
+
+    #loginPanel h2 { margin: 0 0 10px; font-size: 17px; }
+    #loginStatus { margin: 8px 0 0; font-size: 13px; color: #4b5d67; }
+
+    #startButton {
+      position: relative;
+      overflow: hidden;
+      transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+    }
+
+    #startButton:not(:disabled):hover,
+    #startButton:not(:disabled):focus-visible {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(23,53,107,.24);
+      background-color: #214884;
+    }
+
+    #startButton:focus-visible { outline: 3px solid #65c878; outline-offset: 3px; }
+
+    .brand-header { animation: settleIn 420ms ease-out both; }
+
+    .reader-shell {
+      transition: box-shadow 250ms ease, transform 250ms ease;
+      animation: settleIn 520ms ease-out both;
+    }
+
+    .reader-shell.scanning {
+      box-shadow: 0 10px 34px rgba(15,64,79,.20), 0 0 0 2px rgba(69,199,47,.38);
+    }
+
+    .reader-shell.scanning .scan-corner {
+      box-shadow: 0 0 14px rgba(97,226,72,.48);
+      animation: cornerGlow 2.4s ease-in-out infinite;
+    }
+
+    #result { animation: settleIn 580ms ease-out both; }
+
+    #result > * { animation: resultIn 260ms ease-out both; }
+
+    .scan-info {
+      animation: settleIn 680ms ease-out both;
+      transition: box-shadow 250ms ease;
+    }
+
+    .scan-info::before {
+      transform: translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 0) rotate(-8deg);
+      transition: transform 250ms ease-out;
+    }
+
+    .scan-tip { transition: background-color 180ms ease, transform 180ms ease; }
+    .scan-tip:hover { background: rgba(255,255,255,.17); transform: translateY(-2px); }
+
+    @keyframes settleIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes resultIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes cornerGlow {
+      50% { box-shadow: 0 0 20px rgba(97,226,72,.9); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+
   </style>
 
 </head>
@@ -783,22 +866,23 @@
 
   </header>
 
+  <section id="loginPanel" aria-label="Log masuk scanner">
+    <h2>Log masuk Google</h2>
+    <div id="googleButton"></div>
+    <p id="loginStatus" role="status">Menyediakan log masuk...</p>
+  </section>
+
 
 
   <button
     id="startButton"
     onclick="startScanner()"
+    hidden
   >
 
-    📷 AKTIFKAN KAMERA
+    📷 CUBA BUKA KAMERA
 
   </button>
-
-  <label for="scanDirection" style="display:block;margin:12px 0 6px;font-weight:bold">Arah kehadiran murid</label>
-  <select id="scanDirection" style="width:100%;padding:12px;border:1px solid #b8c8d8;border-radius:8px;background:white;font:inherit">
-    <option value="Masuk">Masuk</option>
-    <option value="Keluar">Keluar</option>
-  </select>
 
 
 
@@ -830,7 +914,7 @@
     </div>
 
     <div class="waiting">
-      Tekan AKTIFKAN KAMERA untuk bermula
+      Menyediakan kamera...
     </div>
 
   </div>
@@ -892,25 +976,26 @@
 // Sesi sementara dibekalkan oleh menu Kehadiran pelajar dalam Portal Guru.
 // =================================================
 const launchParams = new URLSearchParams(location.hash.slice(1));
-const API_URL = launchParams.get("portal") || "";
-const SCANNER_SESSION = launchParams.get("session") || "";
-const validLaunch = (() => {
+const API_URL = launchParams.get("portal") || "https://script.google.com/macros/s/AKfycbyMRfgWngOD9vTqlePACL9pXkql98WM4_hmWZaJ7vxWHnOpX07NZujLsldjg10U-LfXJQ/exec";
+let SCANNER_SESSION = launchParams.get("session") || "";
+const validApi = (() => {
   try {
     const url = new URL(API_URL);
     return url.protocol === "https:" &&
       url.hostname === "script.google.com" &&
-      /^\/macros\/s\/[^/]+\/exec$/.test(url.pathname) &&
-      /^[a-f0-9-]{36}$/i.test(SCANNER_SESSION);
+      /^\/macros\/s\/[^/]+\/exec$/.test(url.pathname);
   } catch (error) {
     return false;
   }
 })();
+let validLaunch = validApi && /^[a-f0-9-]{36}$/i.test(SCANNER_SESSION);
 
-if (!validLaunch) {
+if (validLaunch) document.getElementById("loginPanel").hidden = true;
+else document.querySelector("#result .waiting").textContent = "Log masuk Google untuk mula mengimbas";
+if (!validApi) {
   document.getElementById("startButton").disabled = true;
   document.getElementById("result").innerHTML =
-    '<div class="icon">❌</div><div class="title">SESI SCANNER TIADA</div>' +
-    '<div class="time">Buka melalui menu Kehadiran pelajar dalam Portal Guru.</div>';
+    '<div class="icon">❌</div><div class="title">API SCANNER TIDAK SAH</div>';
 }
 
 
@@ -924,6 +1009,17 @@ let scanner = null;
 let processing = false;
 
 let cameraRunning = false;
+let cameraStarting = false;
+
+async function stopScanner() {
+  const current = scanner;
+  scanner = null;
+  cameraRunning = false;
+  document.getElementById("readerShell").classList.remove("scanning");
+  if (!current) return;
+  try { if (current.isScanning) await current.stop(); } catch (error) {}
+  try { await current.clear(); } catch (error) {}
+}
 
 let lastDecodedText = "";
 
@@ -1234,17 +1330,12 @@ function soundError() {
 
 async function startScanner() {
 
+  if (cameraRunning || cameraStarting || !validLaunch) return;
+  cameraStarting = true;
+
 
   // Unlock audio pada iPhone / Android
   initAudio();
-
-
-  if (!validLaunch) {
-    document.getElementById("result").innerHTML =
-      '<div class="icon">❌</div><div class="title">SESI SCANNER TIADA</div>' +
-      '<div class="time">Buka melalui menu Kehadiran pelajar dalam Portal Guru.</div>';
-    return;
-  }
 
 
   const button =
@@ -1276,6 +1367,8 @@ async function startScanner() {
 
 
   try {
+
+    if (!window.Html5Qrcode) throw new Error("Pustaka scanner gagal dimuatkan. Semak sambungan internet.");
 
 
     // =================================================
@@ -1406,8 +1499,7 @@ async function startScanner() {
 
 
 
-    button.style.display =
-      "none";
+    button.hidden = true;
 
 
 
@@ -1427,6 +1519,12 @@ async function startScanner() {
     cameraRunning =
       false;
 
+    try {
+      if (scanner && scanner.isScanning) await scanner.stop();
+      if (scanner) await scanner.clear();
+    } catch (cleanupError) {}
+    scanner = null;
+
 
     document.getElementById(
       "readerShell"
@@ -1438,9 +1536,11 @@ async function startScanner() {
     button.disabled =
       false;
 
+    button.hidden = false;
+
 
     button.innerHTML =
-      "📷 CUBA AKTIFKAN KAMERA SEMULA";
+      "📷 CUBA BUKA KAMERA SEMULA";
 
 
     document.getElementById(
@@ -1466,6 +1566,10 @@ async function startScanner() {
 
       '</div>';
 
+  }
+
+  finally {
+    cameraStarting = false;
   }
 
 }
@@ -1498,7 +1602,7 @@ function onScanSuccess(
   // dihantar semula serta-merta sebagai rekod duplicate.
   if (
     decodedText === lastDecodedText &&
-    Date.now() - lastDecodedAt < 3500
+    Date.now() - lastDecodedAt < 1800
   ) {
 
     return;
@@ -1692,7 +1796,7 @@ function sendToGoogleSheets(
     action: "scanStudent",
     session: SCANNER_SESSION,
     token: qrValue,
-    direction: document.getElementById("scanDirection").value,
+    direction: "Masuk",
     requestId,
     callback: callbackName
   }).toString();
@@ -1811,6 +1915,15 @@ function showResult(
   data
 ) {
 
+  if (data && !data.success && /Sesi scanner (tidak sah|telah tamat)/i.test(data.message || "")) {
+    validLaunch = false;
+    SCANNER_SESSION = "";
+    stopScanner();
+    document.getElementById("loginPanel").hidden = false;
+    document.getElementById("loginStatus").textContent = "Sesi tamat. Log masuk Google semula.";
+    initGoogleLogin();
+  }
+
 
   // =================================================
   // KEHADIRAN BERJAYA
@@ -1849,7 +1962,7 @@ function showResult(
       '<div class="status">' +
 
       escapeHtml(
-        document.getElementById("scanDirection").value
+        "Masuk"
       ) +
 
       '</div>' +
@@ -2050,7 +2163,7 @@ function prepareNextScan() {
 
     },
 
-    900
+    350
 
   );
 
@@ -2106,6 +2219,82 @@ function escapeHtml(
 
   return div.innerHTML;
 
+}
+
+let googleLoginStarting = false;
+function scannerApi(action, values = {}) {
+  return new Promise((resolve, reject) => {
+    const callback = "scanCallback_" + crypto.randomUUID().replace(/-/g, "");
+    const script = document.createElement("script");
+    let finished = false;
+    const finish = (error, result) => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      delete window[callback];
+      script.remove();
+      error ? reject(error) : resolve(result);
+    };
+    const timer = setTimeout(() => finish(new Error("API tidak memberi respons. Semak deployment scanner.")), 20000);
+    window[callback] = result => finish(null, result);
+    script.onerror = () => finish(new Error("Tidak dapat menghubungi API scanner."));
+    const url = new URL(API_URL);
+    url.search = new URLSearchParams({action, ...values, callback}).toString();
+    script.src = url.href;
+    document.body.appendChild(script);
+  });
+}
+
+async function onGoogleCredential(response) {
+  const status = document.getElementById("loginStatus");
+  status.textContent = "Mengesahkan akaun Google...";
+  try {
+    const result = await scannerApi("scannerLogin", {credential: response.credential});
+    if (!result.success) throw new Error(result.message || "Log masuk gagal.");
+    SCANNER_SESSION = result.session;
+    validLaunch = /^[a-f0-9-]{36}$/i.test(SCANNER_SESSION);
+    if (!validLaunch) throw new Error("Sesi scanner tidak sah.");
+    document.getElementById("loginPanel").hidden = true;
+    await stopScanner();
+    startScanner();
+  } catch (error) {
+    status.textContent = error.message || "Log masuk gagal.";
+  }
+}
+
+async function initGoogleLogin() {
+  if (googleLoginStarting || validLaunch || !validApi) return;
+  googleLoginStarting = true;
+  const status = document.getElementById("loginStatus");
+  try {
+    const config = await scannerApi("scannerConfig");
+    if (!config.success) throw new Error(config.message || "Tetapan Google belum lengkap.");
+    for (let attempt = 0; !window.google?.accounts?.id && attempt < 40; attempt++)
+      await new Promise(resolve => setTimeout(resolve, 100));
+    if (!window.google?.accounts?.id) throw new Error("Log masuk Google gagal dimuatkan.");
+    google.accounts.id.initialize({client_id: config.clientId, callback: onGoogleCredential, auto_select: true});
+    google.accounts.id.renderButton(document.getElementById("googleButton"),
+      {theme: "outline", size: "large", text: "signin_with", width: 280});
+    status.textContent = "Pilih akaun guru yang berdaftar.";
+    google.accounts.id.prompt();
+  } catch (error) {
+    status.textContent = error.message || "Log masuk tidak tersedia.";
+    googleLoginStarting = false;
+  }
+}
+
+window.addEventListener("pageshow", function() {
+  if (validLaunch && !cameraRunning) startScanner();
+  else if (!validLaunch) initGoogleLogin();
+});
+window.addEventListener("pagehide", stopScanner);
+
+if (window.matchMedia?.("(pointer: fine) and (prefers-reduced-motion: no-preference)").matches) {
+  const info = document.querySelector(".scan-info");
+  window.addEventListener("pointermove", event => {
+    info.style.setProperty("--parallax-x", ((event.clientX / innerWidth) - .5) * 10 + "px");
+    info.style.setProperty("--parallax-y", ((event.clientY / innerHeight) - .5) * 8 + "px");
+  }, {passive: true});
 }
 
 
