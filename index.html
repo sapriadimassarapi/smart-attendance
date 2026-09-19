@@ -2275,7 +2275,7 @@ async function initGoogleLogin() {
     google.accounts.id.initialize({client_id: config.clientId, callback: onGoogleCredential, auto_select: true});
     google.accounts.id.renderButton(document.getElementById("googleButton"),
       {theme: "outline", size: "large", text: "signin_with", width: 280});
-    status.textContent = "Pilih akaun guru yang berdaftar.";
+    status.textContent = "Pilih akaun Google untuk mengimbas.";
     google.accounts.id.prompt();
   } catch (error) {
     status.textContent = error.message || "Log masuk tidak tersedia.";
