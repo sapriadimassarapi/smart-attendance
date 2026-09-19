@@ -2000,7 +2000,7 @@ function showResult(data, qrValue) {
   }
 
   result.classList.remove("success", "duplicate");
-  if (data && data.success) {
+  if (data && (data.success || data.duplicate)) {
     if (qrValue) recordedTokens.add(String(qrValue).trim());
     if (data.duplicate) soundDuplicate();
     else soundSuccess();
@@ -2020,7 +2020,7 @@ function showResult(data, qrValue) {
   soundError();
   result.innerHTML =
     '<div class="icon">❌</div>' +
-    '<div class="title">IMBASAN TIDAK DIREKOD</div>' +
+    '<div class="title">' + (data && /QR murid gagal dikenal pasti|Token QR tidak sah/i.test(data.message || "") ? 'QR TIDAK DAPAT DIBACA' : 'IMBASAN GAGAL') + '</div>' +
     '<div class="time">' + escapeHtml(data && data.message ? data.message : "Semak sesi scanner dan cuba lagi.") + '</div>';
   if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
   prepareNextScan();
@@ -2151,8 +2151,8 @@ document.getElementById("manualSubmit").addEventListener("click", async function
   try {
     const data = await scannerApi("scanStudent", {session:SCANNER_SESSION,muridId,direction:"Masuk",requestId:crypto.randomUUID()});
     showResult(data);
-    recorded = !!data.success;
-    status.textContent = data.success ? "" : data.message;
+    recorded = !!(data.success || data.duplicate);
+    status.textContent = recorded ? "" : data.message;
   } catch (error) { status.textContent = error.message || "Rekod gagal."; }
   finally { this.disabled = recorded; }
 });
