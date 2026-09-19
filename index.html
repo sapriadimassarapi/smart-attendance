@@ -18,6 +18,9 @@
 
   <title>Smart Attendance</title>
 
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+
 
   <!-- QR Scanner Library -->
   <script
@@ -822,6 +825,8 @@
     }
 
     #result.success .icon { filter: drop-shadow(0 0 8px rgba(50,189,93,.48)); }
+    #result.duplicate { border:1px solid #e9bd68; box-shadow:0 7px 22px rgba(137,91,16,.14); }
+    #result.duplicate .icon { filter:drop-shadow(0 0 7px rgba(203,143,34,.25)); }
 
     .scan-info {
       animation: settleIn 680ms ease-out both;
@@ -875,13 +880,13 @@
     #scannerPin { margin:6px 0 12px; }
     #result .class { font-weight:700; }
     #result .time { margin-top:8px; }
-    #result.success { min-height: 230px; padding: 20px 14px; color:#1d283a; text-align:center; }
-    #result.success .icon { font-size:38px; line-height:1; margin-bottom:12px; }
-    #result.success .title { font-size:clamp(18px, 5vw, 24px); line-height:1.15; }
-    #result.success .name { font-size:clamp(25px, 7.5vw, 38px); line-height:1.07; margin:8px 0; }
-    #result.success .class { font-size:clamp(17px, 5vw, 22px); font-weight:500; text-transform:uppercase; }
-    #result.success .status { font-size:19px; margin-top:10px; }
-    #result.success .time { font-size:17px; margin-top:5px; color:#6b7280; }
+    #result.success, #result.duplicate { min-height: 230px; padding: 20px 14px; color:#1d283a; text-align:center; }
+    #result.success .icon, #result.duplicate .icon { font-size:38px; line-height:1; margin-bottom:12px; }
+    #result.success .title, #result.duplicate .title { font-size:clamp(18px, 5vw, 24px); line-height:1.15; }
+    #result.success .name, #result.duplicate .name { font-size:clamp(25px, 7.5vw, 38px); line-height:1.07; margin:8px 0; }
+    #result.success .class, #result.duplicate .class { font-size:clamp(17px, 5vw, 22px); font-weight:500; text-transform:uppercase; }
+    #result.success .status, #result.duplicate .status { font-size:19px; margin-top:10px; }
+    #result.success .time, #result.duplicate .time { font-size:17px; margin-top:5px; color:#6b7280; }
   </style>
 
 </head>
@@ -1479,7 +1484,7 @@ async function startScanner() {
 
       {
 
-        fps: 24,
+        fps: window.BarcodeDetector ? 24 : 15,
 
 
         qrbox: function(
@@ -1674,7 +1679,7 @@ function onScanSuccess(
   // dihantar semula serta-merta sebagai rekod duplicate.
   if (
     decodedText === lastDecodedText &&
-    Date.now() - lastDecodedAt < 1800
+    Date.now() - lastDecodedAt < 500
   ) {
 
     return;
@@ -1690,7 +1695,7 @@ function onScanSuccess(
   processing =
     true;
 
-  document.getElementById("result").classList.remove("success");
+  document.getElementById("result").classList.remove("success", "duplicate");
 
 
 
@@ -1994,15 +1999,15 @@ function showResult(data, qrValue) {
     initGoogleLogin();
   }
 
-  result.classList.remove("success");
+  result.classList.remove("success", "duplicate");
   if (data && data.success) {
     if (qrValue) recordedTokens.add(String(qrValue).trim());
     if (data.duplicate) soundDuplicate();
     else soundSuccess();
-    result.classList.add("success");
+    result.classList.add(data.duplicate ? "duplicate" : "success");
     result.innerHTML =
-      '<div class="icon">✅</div>' +
-      '<div class="title">KEHADIRAN DIREKOD</div>' +
+      '<div class="icon">' + (data.duplicate ? '⚠️' : '✅') + '</div>' +
+      '<div class="title">' + (data.duplicate ? 'KEHADIRAN SUDAH DIREKOD' : 'KEHADIRAN DIREKOD') + '</div>' +
       '<div class="name">' + escapeHtml(data.nama || "Pelajar") + '</div>' +
       '<div class="class">' + escapeHtml(data.kelas || "") + '</div>' +
       '<div class="status">HADIR</div>' +
