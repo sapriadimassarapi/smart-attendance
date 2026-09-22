@@ -16,7 +16,10 @@
   >
   <meta name="referrer" content="no-referrer">
 
-  <title>Scanner Kehadiran | Portal Staf</title>
+  <title>Scanner Kehadiran | SMART ATTENDANCE</title>
+
+  <link rel="icon" type="image/png" href="./favicon-sk-pulau-sepanggar.png?v=20260923">
+  <link rel="apple-touch-icon" href="./favicon-sk-pulau-sepanggar.png?v=20260923">
 
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
@@ -26,7 +29,6 @@
   <script
     src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">
   </script>
-  <script src="https://accounts.google.com/gsi/client" async></script>
 
 
   <style>
@@ -747,6 +749,8 @@
 
     #startButton[hidden] { display: none; }
     #loginPanel[hidden] { display: none; }
+    #manualPanel[hidden] { display: none; }
+    .portal-home[hidden] { display: none; }
 
     #loginPanel {
       background: #fff;
@@ -947,7 +951,7 @@
     <p>Halakan kamera pada kod QR murid untuk merekod kehadiran.</p>
   </section>
 
-  <section id="loginPanel" aria-label="Log masuk scanner">
+  <section id="loginPanel" aria-label="Log masuk scanner" hidden>
     <h2>Log masuk Google</h2>
     <label for="scannerPin">PIN scanner</label>
     <input id="scannerPin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="12" placeholder="PIN pentadbir">
@@ -1008,13 +1012,13 @@
 
 
   <div class="small">
-    Scanner Kehadiran Portal Staf
+    Scanner Kehadiran SMART ATTENDANCE
   </div>
 
 
 
 
-  <section id="manualPanel" class="manual-panel" aria-label="Rekod kehadiran tanpa QR">
+  <section id="manualPanel" class="manual-panel" aria-label="Rekod kehadiran tanpa QR" hidden>
     <h2>Rekod tanpa QR</h2>
     <label for="manualClass">Kelas</label>
     <select id="manualClass" disabled><option value="">Log masuk untuk memuatkan kelas</option></select>
@@ -1053,14 +1057,13 @@
 
 
 // =================================================
-// Sesi sementara dibekalkan oleh menu Kehadiran pelajar dalam Portal Staf.
+// Scanner GitHub merekod terus ke Google Sheet SMART ATTENDANCE.
 // =================================================
 const launchParams = new URLSearchParams(location.hash.slice(1));
-let storedLaunch = {};
-try { storedLaunch = JSON.parse(sessionStorage.getItem("portalScannerLaunch") || "{}"); } catch (error) {}
-const API_URL = launchParams.get("portal") || storedLaunch.portal || "https://script.google.com/macros/s/AKfycbyMRfgWngOD9vTqlePACL9pXkql98WM4_hmWZaJ7vxWHnOpX07NZujLsldjg10U-LfXJQ/exec";
-let SCANNER_SESSION = launchParams.get("session") || storedLaunch.session || "";
-const RETURN_URL = launchParams.get("return") || storedLaunch.return || API_URL;
+const launchedFromPortal = launchParams.has("return");
+const API_URL = "https://script.google.com/macros/s/AKfycbzoZOmld5774fp51T-v8N8R7udNGRDYUqClo7zVowqc1OxwhtA2_C-7pKskUy0fm0SV/exec";
+let SCANNER_SESSION = "";
+const RETURN_URL = launchParams.get("return") || "";
 const validApi = (() => {
   try {
     const url = new URL(API_URL);
@@ -1071,15 +1074,13 @@ const validApi = (() => {
     return false;
   }
 })();
-let validLaunch = validApi && /^[a-f0-9-]{36}$/i.test(SCANNER_SESSION);
+let validLaunch = validApi;
 
-document.getElementById("portalHome").href = RETURN_URL;
-if (validLaunch) {
-  try { sessionStorage.setItem("portalScannerLaunch", JSON.stringify({portal:API_URL, session:SCANNER_SESSION, return:RETURN_URL})); } catch (error) {}
-}
+if (RETURN_URL) document.getElementById("portalHome").href = RETURN_URL;
+else document.getElementById("portalHome").hidden = true;
 
-if (validLaunch) document.getElementById("loginPanel").hidden = true;
-else document.querySelector("#result .waiting").textContent = "Log masuk Google untuk mula mengimbas";
+document.getElementById("loginPanel").hidden = true;
+if (!validLaunch) document.querySelector("#result .waiting").textContent = "API SMART ATTENDANCE tidak tersedia.";
 if (!validApi) {
   document.getElementById("startButton").disabled = true;
   document.getElementById("result").innerHTML =
@@ -1911,11 +1912,8 @@ function sendToGoogleSheets(
 
   const url = new URL(API_URL);
   url.search = new URLSearchParams({
-    action: "scanStudent",
-    session: SCANNER_SESSION,
-    token: qrValue,
-    direction: "Masuk",
-    requestId,
+    action: "scan",
+    id: qrValue,
     callback: callbackName
   }).toString();
 
@@ -2039,13 +2037,19 @@ function showResult(data, qrValue) {
     SCANNER_SESSION = "";
     try { sessionStorage.removeItem("portalScannerLaunch"); } catch (error) {}
     stopScanner();
+    if (launchedFromPortal) {
+      document.getElementById("loginPanel").hidden = true;
+      result.classList.remove("success", "duplicate");
+      result.innerHTML = '<div class="icon">⚠️</div><div class="title">SESI SCANNER TAMAT</div><div class="time">Kembali ke Portal Staf melalui ikon Home, kemudian buka scanner semula. PIN tidak diperlukan untuk laluan Portal.</div>';
+      return;
+    }
     document.getElementById("loginPanel").hidden = false;
     document.getElementById("loginStatus").textContent = "Sesi tamat. Log masuk Google semula.";
     initGoogleLogin();
   }
 
   if (data && (data.success || data.duplicate)) {
-    if (qrValue) recordedTokens.set(String(qrValue).trim(), {
+    if (qrValue && !data.syncWarning) recordedTokens.set(String(qrValue).trim(), {
       nama:data.nama,kelas:data.kelas,masa:data.masa,lastSeenAt:Date.now()
     });
     if (data.duplicate) {
@@ -2060,7 +2064,7 @@ function showResult(data, qrValue) {
           '<div class="title">KEHADIRAN SUDAH DIREKOD</div>' +
           '<div class="name">' + escapeHtml(data.nama || "Pelajar") + '</div>' +
           '<div class="class">' + escapeHtml(data.kelas || "") + '</div>' +
-          '<div class="status">HADIR</div>' +
+          '<div class="status">' + escapeHtml(data.status || "SUDAH DIREKOD") + '</div>' +
           '<div class="time">' + escapeHtml(data.masa || "") + '</div>';
       }
     } else {
@@ -2074,8 +2078,13 @@ function showResult(data, qrValue) {
         '<div class="title">KEHADIRAN DIREKOD</div>' +
         '<div class="name">' + escapeHtml(data.nama || "Pelajar") + '</div>' +
         '<div class="class">' + escapeHtml(data.kelas || "") + '</div>' +
-        '<div class="status">HADIR</div>' +
+        '<div class="status">' + escapeHtml(data.status || "HADIR") + '</div>' +
         '<div class="time">' + escapeHtml(data.masa || "") + '</div>';
+    }
+    if (data.syncWarning) {
+      const notice = "Rekod Portal Staf berjaya, tetapi SMART ATTENDANCE belum disegerakkan. Maklumkan pentadbir dan imbas semula selepas sambungan dibaiki.";
+      setScanFeedback(notice, "warning");
+      result.insertAdjacentHTML("beforeend", '<div class="time">' + escapeHtml(notice) + '</div>');
     }
     if (navigator.vibrate) navigator.vibrate(data.duplicate ? [100, 80, 100] : 150);
     prepareNextScan();
@@ -2196,7 +2205,10 @@ async function loadManualRoster() {
   status.textContent = "Memuatkan kelas dan nama murid...";
   try {
     const data = await scannerApi("scannerRoster", {session: SCANNER_SESSION});
-    if (!data.success) throw new Error(data.message || "Senarai murid tidak dapat dimuatkan.");
+    if (!data.success) {
+      if (/Sesi scanner (tidak sah|telah tamat)/i.test(data.message || "")) showResult(data);
+      throw new Error(data.message || "Senarai murid tidak dapat dimuatkan.");
+    }
     manualStudents = data.students || [];
     select.replaceChildren(new Option("Pilih kelas", ""), ...(data.classes || []).map(k => new Option(k.nama, k.kelasId)));
     select.disabled = !(data.classes || []).length;
@@ -2295,8 +2307,7 @@ async function initGoogleLogin() {
 }
 
 window.addEventListener("pageshow", function() {
-  if (validLaunch && !cameraRunning) { startScanner(); loadManualRoster(); }
-  else if (!validLaunch) initGoogleLogin();
+  if (validLaunch && !cameraRunning) startScanner();
 });
 window.addEventListener("pagehide", stopScanner);
 
