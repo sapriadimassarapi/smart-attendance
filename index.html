@@ -859,26 +859,42 @@
     #scanFeedback.error { color:#9b2431; background:#fdebed; }
 
     /* Tema Portal Staf — scanner kekal di GitHub untuk akses kamera. */
-    :root { --portal-green:#0b5b49; --portal-dark:#123f36; --portal-mint:#dceee5; --portal-cream:#f7f4e8; --portal-yellow:#f2c84b; --portal-red:#d64545; --portal-blue:#2868b2; }
+    :root { --portal-green:#0b5b49; --portal-dark:#123f36; --portal-mint:#dceee5; --portal-cream:#f7f4e8; --portal-yellow:#f2c84b; --portal-red:#d64545; --portal-blue:#2868b2; --songket-pattern:linear-gradient(45deg,transparent 46%,var(--motif) 47% 53%,transparent 54%),linear-gradient(-45deg,transparent 46%,var(--motif) 47% 53%,transparent 54%),linear-gradient(90deg,transparent 46%,var(--motif) 47% 53%,transparent 54%); }
     html { background:var(--portal-cream); }
-    body { background:linear-gradient(135deg,rgba(11,91,73,.045) 25%,transparent 25%) 0 0/32px 32px,linear-gradient(315deg,rgba(11,91,73,.045) 25%,transparent 25%) 0 0/32px 32px,linear-gradient(180deg,#eef7f1,var(--portal-cream)); color:var(--portal-dark); }
-    .container { max-width:780px; padding-top:96px; }
-    .brand-header { position:fixed; z-index:50; inset:0 0 auto; min-height:76px; margin:0; grid-template-columns:52px 62px minmax(0,1fr) 62px; gap:10px; padding:7px max(14px,calc((100vw - 760px)/2)); background:linear-gradient(135deg,rgba(255,255,255,.28) 25%,transparent 25%) 0 0/26px 26px,linear-gradient(315deg,rgba(255,255,255,.22) 25%,transparent 25%) 0 0/26px 26px,#cfe6d8; border-bottom:4px solid transparent; border-image:linear-gradient(90deg,var(--portal-green) 0 20%,var(--portal-red) 20% 40%,var(--portal-blue) 40% 60%,var(--portal-yellow) 60% 80%,#fff 80%) 1; box-shadow:0 8px 24px rgba(18,63,54,.15); }
+    body { --motif:rgba(35,92,57,.055); background-color:#edf4ee; background-image:var(--songket-pattern),linear-gradient(180deg,#edf5ef,#f7f4e8); background-size:80px 80px,80px 80px,40px 40px,100% 100%; color:var(--portal-dark); }
+    .container { width:min(100%,860px); max-width:860px; padding:96px 18px 0; }
+    .brand-header { --motif:rgba(35,92,57,.095); position:fixed; z-index:50; inset:0 0 auto; min-height:64px; margin:0; grid-template-columns:52px 48px 48px minmax(0,1fr); gap:8px; padding:6px max(14px,calc((100vw - 860px)/2)); background-color:#d2e1d3; background-image:var(--songket-pattern); background-size:80px 80px,80px 80px,40px 40px; border:0; box-shadow:0 7px 22px rgba(27,61,47,.1); }
     .brand-logo { height:58px; width:58px; object-fit:contain; }
-    .brand-title { text-align:left; }
-    .brand-title h1 { color:var(--portal-dark); font-size:clamp(17px,3vw,25px); letter-spacing:.04em; }
-    .brand-title .subtitle { color:#42665c; font-size:12px; }
+    .brand-logo-right { order:3; }
+    .brand-title { order:4; text-align:left; }
+    .brand-title h1 { color:#17462f; font-size:17px; font-weight:850; letter-spacing:.3px; }
+    .brand-title .subtitle { color:#315941; font-size:10px; font-weight:500; }
     .portal-home { display:grid; place-items:center; width:48px; height:48px; align-self:center; color:#fff; background:var(--portal-green); border-radius:15px; text-decoration:none; box-shadow:0 8px 20px rgba(11,91,73,.24); transition:transform .2s,box-shadow .2s; }
     .portal-home:hover,.portal-home:focus-visible { transform:translateY(-2px) rotate(-4deg); box-shadow:0 11px 24px rgba(11,91,73,.32); }
     .portal-home svg { width:25px; height:25px; }
-    #readerShell,.scan-info,.manual-panel,#loginPanel { border-color:rgba(11,91,73,.22); box-shadow:0 16px 42px rgba(18,63,54,.12); }
+    .header-colour-runner { position:absolute; z-index:5; left:0; right:0; bottom:0; height:3px; overflow:hidden; background:rgba(255,255,255,.42); }
+    .header-colour-runner i { position:absolute; bottom:0; left:-16%; height:3px; width:clamp(24px,7vw,86px); border-radius:9px; animation:colourRun 7.1s linear infinite; }
+    .header-colour-runner i:nth-child(1){background:#159447;animation-duration:6.2s}.header-colour-runner i:nth-child(2){background:#dc2f3f;animation-duration:8.7s;animation-delay:-4.3s}.header-colour-runner i:nth-child(3){background:#155acb;animation-duration:7.4s;animation-delay:-1.8s}.header-colour-runner i:nth-child(4){background:#f2c21d;animation-duration:9.3s;animation-delay:-6.7s}.header-colour-runner i:nth-child(5){background:#fff;box-shadow:0 0 5px rgba(255,255,255,.9);animation-duration:5.8s;animation-delay:-2.6s}
+    @keyframes colourRun { 0%{left:-16%;transform:scaleX(.55)}42%{transform:scaleX(1.15)}100%{left:108%;transform:scaleX(.7)} }
+    .scanner-heading { position:relative; overflow:hidden; margin:0 0 18px; padding:23px 26px; border-radius:20px; text-align:left; color:#fff; background:linear-gradient(135deg,#0a564c,#0b6d60 62%,#0a4b43); box-shadow:0 18px 42px rgba(18,63,54,.18); }
+    .scanner-heading::after { content:''; position:absolute; width:180px; height:180px; right:-90px; top:-105px; border:1px solid rgba(255,255,255,.14); border-radius:50%; }
+    .scanner-heading span { display:block; color:#c9f0e5; font-size:10px; font-weight:800; letter-spacing:1.6px; }
+    .scanner-heading h2 { margin:6px 0 4px; color:#fff; font-size:clamp(25px,5vw,38px); letter-spacing:-1px; }
+    .scanner-heading p { margin:0; color:#def3ed; font-size:14px; }
+    #readerShell,.scan-info,.manual-panel,#loginPanel { border:1px solid rgba(11,91,73,.18); border-radius:18px; background:rgba(255,255,255,.88); box-shadow:0 16px 42px rgba(18,63,54,.1); }
     #readerShell { background:var(--portal-dark); }
     .scan-corner { border-color:var(--portal-yellow)!important; }
     #startButton,#manualSubmit { background:linear-gradient(135deg,var(--portal-green),#16816a); }
+    .scan-info { --motif:rgba(35,92,57,.065); margin-top:22px; padding:22px; background-color:#e5f0e8; background-image:var(--songket-pattern); background-size:80px 80px,80px 80px,40px 40px; }
     .scan-info-title,.manual-panel h2,#loginPanel h2 { color:var(--portal-green); }
-    .portal-footer { margin:28px auto 8px; padding:22px 18px 8px; text-align:center; color:#49675f; border-top:1px solid rgba(11,91,73,.18); font-size:12px; line-height:1.65; }
-    .portal-footer strong { display:block; color:var(--portal-dark); margin-bottom:8px; }
-    @media (max-width:600px) { .container { padding-top:84px; } .brand-header { min-height:68px; grid-template-columns:48px 50px minmax(0,1fr) 50px; gap:6px; padding:5px 9px; } .brand-logo { width:48px; height:52px; } .portal-home { width:46px; height:46px; border-radius:14px; } .brand-title h1 { font-size:16px; } .brand-title .subtitle { font-size:10px; } }
+    .scan-tips { gap:10px; }
+    .scan-tip { min-height:62px; border:1px solid rgba(11,91,73,.13); border-radius:14px; background:rgba(255,255,255,.72); color:#315941; }
+    .scan-tip-icon { color:var(--portal-green); }
+    .privacy-note { border-radius:13px; background:#d5e8dc; color:#315941; }
+    .portal-footer { --motif:rgba(236,211,139,.14); width:100vw; max-width:none; margin:32px calc(50% - 50vw) 0; padding:22px max(18px,calc((100vw - 860px)/2)); text-align:center; color:#f4f7ee; border:0; background-color:#305845; background-image:var(--songket-pattern); background-size:80px 80px,80px 80px,40px 40px; font-size:12px; font-weight:500; line-height:1.55; }
+    .portal-footer strong { display:block; color:#fff; margin-bottom:8px; }
+    @media (max-width:600px) { .container { padding:82px 10px 0; } .brand-header { min-height:64px; grid-template-columns:46px 42px 42px minmax(0,1fr); gap:5px; padding:5px 8px; } .brand-logo { width:42px; height:50px; } .portal-home { width:44px; height:44px; border-radius:13px; } .brand-title h1 { font-size:15px; } .brand-title .subtitle { font-size:9px; } .scanner-heading { padding:19px 18px; border-radius:17px; } .scanner-heading p { font-size:12px; } .scan-info { padding:17px 13px; } }
+    @media (prefers-reduced-motion:reduce) { .header-colour-runner i { animation:none!important; } }
   </style>
 
 </head>
@@ -921,7 +937,15 @@
       alt="Logo TS25"
     >
 
+    <div class="header-colour-runner" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+
   </header>
+
+  <section class="scanner-heading" aria-labelledby="scannerTitle">
+    <span>KEHADIRAN PELAJAR</span>
+    <h2 id="scannerTitle">Scanner QR</h2>
+    <p>Halakan kamera pada kod QR murid untuk merekod kehadiran.</p>
+  </section>
 
   <section id="loginPanel" aria-label="Log masuk scanner">
     <h2>Log masuk Google</h2>
@@ -990,37 +1014,6 @@
 
 
 
-  <section class="scan-info" aria-label="Panduan imbasan">
-
-    <div class="scan-info-title">
-      PANDUAN IMBASAN
-    </div>
-
-    <div class="scan-tips">
-
-      <div class="scan-tip">
-        <span class="scan-tip-icon">▣</span>
-        QR penuh dalam kotak
-      </div>
-
-      <div class="scan-tip">
-        <span class="scan-tip-icon">☀️</span>
-        Elakkan pantulan cahaya
-      </div>
-
-      <div class="scan-tip">
-        <span class="scan-tip-icon">🔊</span>
-        Pastikan volume dibuka
-      </div>
-
-    </div>
-
-    <div class="privacy-note">
-      🔒 Rekod dihantar terus ke pangkalan data kehadiran sekolah
-    </div>
-
-  </section>
-
   <section id="manualPanel" class="manual-panel" aria-label="Rekod kehadiran tanpa QR">
     <h2>Rekod tanpa QR</h2>
     <label for="manualClass">Kelas</label>
@@ -1029,6 +1022,16 @@
     <select id="manualStudent" disabled><option value="">Pilih nama</option></select>
     <button id="manualSubmit" type="button" disabled>Rekod kehadiran</button>
     <p id="manualStatus" role="status">Pilih akaun Google untuk memuatkan senarai murid.</p>
+  </section>
+
+  <section class="scan-info" aria-label="Panduan imbasan">
+    <div class="scan-info-title">PANDUAN IMBASAN</div>
+    <div class="scan-tips">
+      <div class="scan-tip"><span class="scan-tip-icon">▣</span>Pastikan keseluruhan QR berada dalam bingkai</div>
+      <div class="scan-tip"><span class="scan-tip-icon">☀️</span>Elakkan pantulan cahaya pada kad murid</div>
+      <div class="scan-tip"><span class="scan-tip-icon">🔊</span>Pastikan bunyi telefon dibuka untuk maklum balas</div>
+    </div>
+    <div class="privacy-note">🔒 Rekod dihantar terus ke pangkalan data kehadiran sekolah</div>
   </section>
 
   <footer class="portal-footer">
