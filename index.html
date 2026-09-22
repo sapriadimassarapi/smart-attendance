@@ -1018,14 +1018,14 @@
 
 
 
-  <section id="manualPanel" class="manual-panel" aria-label="Rekod kehadiran tanpa QR" hidden>
-    <h2>Rekod tanpa QR</h2>
+  <section id="manualPanel" class="manual-panel" aria-label="Rekod kehadiran tanpa QR">
+    <h2>Rekod kehadiran tanpa QR</h2>
     <label for="manualClass">Kelas</label>
-    <select id="manualClass" disabled><option value="">Log masuk untuk memuatkan kelas</option></select>
+    <select id="manualClass" disabled><option value="">Memuatkan kelas...</option></select>
     <label for="manualStudent">Nama murid</label>
     <select id="manualStudent" disabled><option value="">Pilih nama</option></select>
     <button id="manualSubmit" type="button" disabled>Rekod kehadiran</button>
-    <p id="manualStatus" role="status">Pilih akaun Google untuk memuatkan senarai murid.</p>
+    <p id="manualStatus" role="status">Pilih kelas, kemudian pilih nama murid.</p>
   </section>
 
   <section class="scan-info" aria-label="Panduan imbasan">
@@ -2202,26 +2202,40 @@ async function loadManualRoster() {
   const status = document.getElementById("manualStatus");
   const select = document.getElementById("manualClass");
   select.disabled = true;
-  status.textContent = "Memuatkan kelas dan nama murid...";
+  status.textContent = "Memuatkan senarai kelas...";
   try {
-    const data = await scannerApi("scannerRoster", {session: SCANNER_SESSION});
-    if (!data.success) {
-      if (/Sesi scanner (tidak sah|telah tamat)/i.test(data.message || "")) showResult(data);
-      throw new Error(data.message || "Senarai murid tidak dapat dimuatkan.");
-    }
-    manualStudents = data.students || [];
+    const data = await scannerApi("classes");
+    if (!data.success) throw new Error(data.message || "Senarai kelas tidak dapat dimuatkan.");
     select.replaceChildren(new Option("Pilih kelas", ""), ...(data.classes || []).map(k => new Option(k.nama, k.kelasId)));
     select.disabled = !(data.classes || []).length;
-    status.textContent = select.disabled ? "Tiada kelas aktif ditemui. Semak tetapan tahun dan kelas." : "";
+    status.textContent = select.disabled ? "Tiada kelas ditemui dalam helaian Murid." : "Pilih kelas, kemudian pilih nama murid.";
   } catch (error) {
-    status.textContent = (error.message || "Senarai murid tidak tersedia.") + " Semak penerbitan API scanner dan muat semula halaman.";
+    status.textContent = (error.message || "Senarai kelas tidak tersedia.") + " Semak penerbitan SMART ATTENDANCE dan muat semula halaman.";
   }
 }
-document.getElementById("manualClass").addEventListener("change", function() {
+let manualClassRequest = 0;
+document.getElementById("manualClass").addEventListener("change", async function() {
+  const request = ++manualClassRequest;
+  const kelas = this.value;
   const select = document.getElementById("manualStudent");
-  select.replaceChildren(new Option("Pilih nama", ""), ...manualStudents.filter(s => s.kelasId === this.value).sort((a,b) => a.nama.localeCompare(b.nama,"ms")).map(s => new Option(s.nama,s.muridId)));
-  select.disabled = !this.value;
+  const status = document.getElementById("manualStatus");
+  select.replaceChildren(new Option(kelas ? "Memuatkan nama..." : "Pilih nama", ""));
+  select.disabled = true;
   document.getElementById("manualSubmit").disabled = true;
+  if (!kelas) { status.textContent = "Pilih kelas, kemudian pilih nama murid."; return; }
+  status.textContent = "Memuatkan murid dalam kelas " + kelas + "...";
+  try {
+    const data = await scannerApi("students", {kelas});
+    if (request !== manualClassRequest) return;
+    if (!data.success) throw new Error(data.message || "Senarai murid tidak tersedia.");
+    manualStudents = data.students || [];
+    select.replaceChildren(new Option("Pilih nama", ""), ...manualStudents.map(s => new Option(s.nama, s.muridId)));
+    select.disabled = !manualStudents.length;
+    status.textContent = manualStudents.length ? "Pilih nama murid untuk merekod kehadiran." : "Tiada murid dalam kelas ini.";
+  } catch (error) {
+    if (request !== manualClassRequest) return;
+    status.textContent = error.message || "Senarai murid tidak tersedia.";
+  }
 });
 document.getElementById("manualStudent").addEventListener("change", function() {
   document.getElementById("manualSubmit").disabled = !this.value;
@@ -2234,10 +2248,10 @@ document.getElementById("manualSubmit").addEventListener("click", async function
   let recorded = false;
   status.textContent = "Merekod kehadiran...";
   try {
-    const data = await scannerApi("scanStudent", {session:SCANNER_SESSION,muridId,direction:"Masuk",requestId:crypto.randomUUID()});
+    const data = await scannerApi("scan", {id:muridId});
     showResult(data);
     recorded = !!(data.success || data.duplicate);
-    status.textContent = recorded ? "" : data.message;
+    status.textContent = data.duplicate ? "Kehadiran murid ini sudah direkod hari ini." : data.success ? "Kehadiran berjaya direkod." : data.message;
   } catch (error) { status.textContent = error.message || "Rekod gagal."; }
   finally { this.disabled = recorded; }
 });
@@ -2308,6 +2322,7 @@ async function initGoogleLogin() {
 
 window.addEventListener("pageshow", function() {
   if (validLaunch && !cameraRunning) startScanner();
+  if (validLaunch) loadManualRoster();
 });
 window.addEventListener("pagehide", stopScanner);
 
