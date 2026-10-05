@@ -951,13 +951,6 @@
     <p>Halakan kamera pada kod QR murid untuk merekod kehadiran.</p>
   </section>
 
-  <section id="loginPanel" aria-label="Log masuk scanner" hidden>
-    <h2>Log masuk Google</h2>
-    <label for="scannerPin">PIN scanner</label>
-    <input id="scannerPin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="12" placeholder="PIN pentadbir">
-    <div id="googleButton"></div>
-    <p id="loginStatus" role="status">Menyediakan log masuk...</p>
-  </section>
 
 
 
@@ -1060,9 +1053,7 @@
 // Scanner GitHub merekod terus ke Google Sheet SMART ATTENDANCE.
 // =================================================
 const launchParams = new URLSearchParams(location.hash.slice(1));
-const launchedFromPortal = launchParams.has("return");
 const API_URL = "https://script.google.com/macros/s/AKfycbzoZOmld5774fp51T-v8N8R7udNGRDYUqClo7zVowqc1OxwhtA2_C-7pKskUy0fm0SV/exec";
-let SCANNER_SESSION = "";
 const RETURN_URL = launchParams.get("return") || "";
 const validApi = (() => {
   try {
@@ -1074,12 +1065,11 @@ const validApi = (() => {
     return false;
   }
 })();
-let validLaunch = validApi;
+const validLaunch = validApi;
 
 if (RETURN_URL) document.getElementById("portalHome").href = RETURN_URL;
 else document.getElementById("portalHome").hidden = true;
 
-document.getElementById("loginPanel").hidden = true;
 if (!validLaunch) document.querySelector("#result .waiting").textContent = "API SMART ATTENDANCE tidak tersedia.";
 if (!validApi) {
   document.getElementById("startButton").disabled = true;
@@ -1419,7 +1409,7 @@ function soundError() {
 
 
 
-// URL API dan sesi hanya diterima daripada Portal Guru.
+// Scanner awam menggunakan URL API yang diterbitkan.
 // =================================================
 // MULAKAN KAMERA
 // =================================================
@@ -2032,21 +2022,6 @@ function cleanupJsonp(
 
 function showResult(data, qrValue) {
   const result = document.getElementById("result");
-  if (data && !data.success && /Sesi scanner (tidak sah|telah tamat)/i.test(data.message || "")) {
-    validLaunch = false;
-    SCANNER_SESSION = "";
-    try { sessionStorage.removeItem("portalScannerLaunch"); } catch (error) {}
-    stopScanner();
-    if (launchedFromPortal) {
-      document.getElementById("loginPanel").hidden = true;
-      result.classList.remove("success", "duplicate");
-      result.innerHTML = '<div class="icon">⚠️</div><div class="title">SESI SCANNER TAMAT</div><div class="time">Kembali ke Portal Staf melalui ikon Home, kemudian buka scanner semula. PIN tidak diperlukan untuk laluan Portal.</div>';
-      return;
-    }
-    document.getElementById("loginPanel").hidden = false;
-    document.getElementById("loginStatus").textContent = "Sesi tamat. Log masuk Google semula.";
-    initGoogleLogin();
-  }
 
   if (data && (data.success || data.duplicate)) {
     if (qrValue && !data.syncWarning) recordedTokens.set(String(qrValue).trim(), {
@@ -2092,7 +2067,7 @@ function showResult(data, qrValue) {
   }
 
   soundError();
-  const message = data && data.message ? data.message : "Semak sesi scanner dan cuba lagi.";
+  const message = data && data.message ? data.message : "Cuba lagi.";
   if (lastSuccessfulScan) {
     setScanFeedback(message, "error");
   } else {
@@ -2195,7 +2170,6 @@ function escapeHtml(
 
 }
 
-let googleLoginStarting = false;
 let manualStudents = [];
 async function loadManualRoster() {
   if (!validLaunch) return;
@@ -2278,47 +2252,6 @@ function scannerApi(action, values = {}) {
   });
 }
 
-async function onGoogleCredential(response) {
-  const status = document.getElementById("loginStatus");
-  status.textContent = "Mengesahkan akaun Google...";
-  try {
-    const pin = document.getElementById("scannerPin").value.trim();
-    if (!/^\d{6,12}$/.test(pin)) throw new Error("Masukkan PIN scanner 6 hingga 12 digit.");
-    const result = await scannerApi("scannerLogin", {credential: response.credential, pin});
-    if (!result.success) throw new Error(result.message || "Log masuk gagal.");
-    SCANNER_SESSION = result.session;
-    validLaunch = /^[a-f0-9-]{36}$/i.test(SCANNER_SESSION);
-    if (!validLaunch) throw new Error("Sesi scanner tidak sah.");
-    try { sessionStorage.setItem("portalScannerLaunch", JSON.stringify({portal:API_URL, session:SCANNER_SESSION, return:RETURN_URL})); } catch (error) {}
-    document.getElementById("loginPanel").hidden = true;
-    loadManualRoster();
-    await stopScanner();
-    startScanner();
-  } catch (error) {
-    status.textContent = error.message || "Log masuk gagal.";
-  }
-}
-
-async function initGoogleLogin() {
-  if (googleLoginStarting || validLaunch || !validApi) return;
-  googleLoginStarting = true;
-  const status = document.getElementById("loginStatus");
-  try {
-    const config = await scannerApi("scannerConfig");
-    if (!config.success) throw new Error(config.message || "Tetapan Google belum lengkap.");
-    for (let attempt = 0; !window.google?.accounts?.id && attempt < 40; attempt++)
-      await new Promise(resolve => setTimeout(resolve, 100));
-    if (!window.google?.accounts?.id) throw new Error("Log masuk Google gagal dimuatkan.");
-    google.accounts.id.initialize({client_id: config.clientId, callback: onGoogleCredential, auto_select: true});
-    google.accounts.id.renderButton(document.getElementById("googleButton"),
-      {theme: "outline", size: "large", text: "signin_with", width: 280});
-    status.textContent = "Pilih akaun Google untuk mengimbas.";
-    google.accounts.id.prompt();
-  } catch (error) {
-    status.textContent = error.message || "Log masuk tidak tersedia.";
-    googleLoginStarting = false;
-  }
-}
 
 window.addEventListener("pageshow", function() {
   if (validLaunch && !cameraRunning) startScanner();
