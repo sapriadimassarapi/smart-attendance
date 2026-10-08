@@ -900,46 +900,63 @@
     @media (max-width:600px) { .container { padding:82px 10px 0; } .brand-header { min-height:64px; grid-template-columns:46px 42px 42px minmax(0,1fr); gap:5px; padding:5px 8px; } .brand-logo { width:42px; height:50px; } .portal-home { width:44px; height:44px; border-radius:13px; } .brand-title h1 { font-size:15px; } .brand-title .subtitle { font-size:9px; } .scanner-heading { padding:19px 18px; border-radius:17px; } .scanner-heading p { font-size:12px; } .scan-info { padding:17px 13px; } }
     @media (prefers-reduced-motion:reduce) { .header-colour-runner i { animation:none!important; } }
 
-    /* Header kompak tanpa mengganggu saiz ruang kamera. */
+    /* Header padat: semua item dan maklumat asal dikekalkan. */
     .container { padding-top: 62px; }
     .brand-header {
       min-height: 52px;
-      grid-template-columns: 40px 36px 36px minmax(0,1fr);
+      grid-template-columns: 40px 36px 36px minmax(0, 1fr);
       gap: 5px;
       padding-top: 3px;
       padding-bottom: 3px;
     }
-    .brand-logo { width: 36px; height: 44px; }
-    .portal-home { width: 38px; height: 38px; border-radius: 11px; }
-    .portal-home svg { width: 21px; height: 21px; }
-    .brand-title h1 { font-size: 14px; line-height: 1.08; }
-    .brand-title .subtitle { font-size: 8px; line-height: 1; }
-    .scanner-heading { margin-bottom: 9px; padding: 10px 14px; border-radius: 14px; }
-    .scanner-heading span { font-size: 8px; letter-spacing: 1.2px; }
-    .scanner-heading h2 { margin: 2px 0; font-size: clamp(19px,4.8vw,25px); }
-    .scanner-heading p { font-size: 11px; line-height: 1.25; }
-
-    /* Kurangkan penggunaan GPU semasa kamera sedang aktif. */
-    body.scanner-active .header-colour-runner i,
-    body.scanner-active .scan-info::before,
-    body.scanner-active #result::after {
-      animation: none !important;
+    .brand-logo {
+      width: 36px;
+      height: 44px;
+    }
+    .portal-home {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+    }
+    .portal-home svg {
+      width: 21px;
+      height: 21px;
+    }
+    .brand-title h1 {
+      font-size: 14px;
+      line-height: 1.08;
+    }
+    .brand-title .subtitle {
+      display: block;
+      margin-top: 1px;
+      font-size: 8px;
+      line-height: 1.1;
+      letter-spacing: .35px;
     }
 
-    @media (max-width:600px) {
-      .container { padding: 58px 8px 0; }
+    @media (max-width: 600px) {
+      .container { padding-top: 58px; }
       .brand-header {
         min-height: 50px;
-        grid-template-columns: 38px 34px 34px minmax(0,1fr);
+        grid-template-columns: 38px 34px 34px minmax(0, 1fr);
         gap: 4px;
         padding: 3px 7px;
       }
-      .brand-logo { width: 34px; height: 42px; }
-      .portal-home { width: 36px; height: 36px; border-radius: 10px; }
+      .brand-logo {
+        width: 34px;
+        height: 42px;
+      }
+      .portal-home {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+      }
       .brand-title h1 { font-size: 13px; }
-      .brand-title .subtitle { display: none; }
-      .scanner-heading { padding: 8px 11px; }
-      .scanner-heading p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .brand-title .subtitle {
+        display: block;
+        font-size: 7.5px;
+        white-space: normal;
+      }
     }
   </style>
 
@@ -1136,7 +1153,6 @@ async function stopScanner() {
   const current = scanner;
   scanner = null;
   cameraRunning = false;
-  document.body.classList.remove("scanner-active");
   document.getElementById("readerShell").classList.remove("scanning");
   if (!current) return;
   try { if (current.isScanning) await current.stop(); } catch (error) {}
@@ -1346,6 +1362,25 @@ function playTone(
 
 
 // =================================================
+// BUNYI PENDEK APABILA QR BERJAYA DIBACA
+// =================================================
+
+function soundQrRead() {
+
+  // Nada pendek dan lembut. Ini hanya mengesahkan decoder sudah
+  // menerima QR; bunyi kejayaan asal kekal selepas rekod disimpan.
+  playTone(
+    720,
+    0.055,
+    0.18,
+    "sine"
+  );
+
+}
+
+
+
+// =================================================
 // BUNYI BERJAYA
 // =================================================
 
@@ -1540,9 +1575,7 @@ async function startScanner() {
 
       {
 
-        // 12 FPS lebih stabil pada telefon. 20 FPS boleh menyebabkan
-        // decoder berebut CPU lalu fokus kamera terasa lambat.
-        fps: 12,
+        fps: 20,
 
 
         qrbox: function(
@@ -1555,7 +1588,7 @@ async function startScanner() {
               Math.min(
                 viewfinderWidth,
                 viewfinderHeight
-          ) * 0.82
+          ) * 0.78
             );
 
           return {
@@ -1622,8 +1655,6 @@ async function startScanner() {
 
     cameraRunning =
       true;
-
-    document.body.classList.add("scanner-active");
 
 
     document.getElementById(
@@ -1762,6 +1793,8 @@ function onScanSuccess(
   lastDecodedText = decodedText;
 
   lastDecodedAt = Date.now();
+
+  soundQrRead();
 
 
   processing =
@@ -2157,7 +2190,7 @@ function prepareNextScan() {
 
     },
 
-    0
+    120
 
   );
 
