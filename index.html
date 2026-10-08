@@ -900,7 +900,7 @@
     @media (max-width:600px) { .container { padding:82px 10px 0; } .brand-header { min-height:64px; grid-template-columns:46px 42px 42px minmax(0,1fr); gap:5px; padding:5px 8px; } .brand-logo { width:42px; height:50px; } .portal-home { width:44px; height:44px; border-radius:13px; } .brand-title h1 { font-size:15px; } .brand-title .subtitle { font-size:9px; } .scanner-heading { padding:19px 18px; border-radius:17px; } .scanner-heading p { font-size:12px; } .scan-info { padding:17px 13px; } }
     @media (prefers-reduced-motion:reduce) { .header-colour-runner i { animation:none!important; } }
 
-    /* Header kompak: lebih banyak ruang untuk kamera pada telefon. */
+    /* Header kompak tanpa mengganggu saiz ruang kamera. */
     .container { padding-top: 62px; }
     .brand-header {
       min-height: 52px;
@@ -914,14 +914,17 @@
     .portal-home svg { width: 21px; height: 21px; }
     .brand-title h1 { font-size: 14px; line-height: 1.08; }
     .brand-title .subtitle { font-size: 8px; line-height: 1; }
-    .scanner-heading {
-      margin-bottom: 9px;
-      padding: 10px 14px;
-      border-radius: 14px;
-    }
+    .scanner-heading { margin-bottom: 9px; padding: 10px 14px; border-radius: 14px; }
     .scanner-heading span { font-size: 8px; letter-spacing: 1.2px; }
     .scanner-heading h2 { margin: 2px 0; font-size: clamp(19px,4.8vw,25px); }
     .scanner-heading p { font-size: 11px; line-height: 1.25; }
+
+    /* Kurangkan penggunaan GPU semasa kamera sedang aktif. */
+    body.scanner-active .header-colour-runner i,
+    body.scanner-active .scan-info::before,
+    body.scanner-active #result::after {
+      animation: none !important;
+    }
 
     @media (max-width:600px) {
       .container { padding: 58px 8px 0; }
@@ -1133,6 +1136,7 @@ async function stopScanner() {
   const current = scanner;
   scanner = null;
   cameraRunning = false;
+  document.body.classList.remove("scanner-active");
   document.getElementById("readerShell").classList.remove("scanning");
   if (!current) return;
   try { if (current.isScanning) await current.stop(); } catch (error) {}
@@ -1143,11 +1147,6 @@ let lastDecodedText = "";
 
 let lastDecodedAt = 0;
 const recordedTokens = new Map();
-const recentScanTokens = new Map();
-const scanQueue = [];
-let queueSending = false;
-const QR_COOLDOWN_MS = 3500;
-const MAX_QUEUE_RETRIES = 2;
 let lastSuccessfulScan = null;
 function setScanFeedback(message, kind) {
   const feedback = document.getElementById("scanFeedback");
@@ -1541,7 +1540,9 @@ async function startScanner() {
 
       {
 
-        fps: 20,
+        // 12 FPS lebih stabil pada telefon. 20 FPS boleh menyebabkan
+        // decoder berebut CPU lalu fokus kamera terasa lambat.
+        fps: 12,
 
 
         qrbox: function(
@@ -1554,7 +1555,7 @@ async function startScanner() {
               Math.min(
                 viewfinderWidth,
                 viewfinderHeight
-          ) * 0.66
+          ) * 0.82
             );
 
           return {
@@ -1621,6 +1622,8 @@ async function startScanner() {
 
     cameraRunning =
       true;
+
+    document.body.classList.add("scanner-active");
 
 
     document.getElementById(
@@ -1715,124 +1718,7 @@ async function startScanner() {
 // QR BERJAYA DIBACA
 // =================================================
 
-// Mod pantas: kamera terus membaca QR seterusnya. Permintaan ke
-// Apps Script dihantar satu demi satu melalui queue di latar.
-function onScanSuccess(decodedText) {
-  decodedText = String(decodedText || "").trim();
-  if (!decodedText) return;
-
-  if (recordedTokens.has(decodedText)) return;
-
-  const now = Date.now();
-  const lastSeen = recentScanTokens.get(decodedText) || 0;
-  if (now - lastSeen < QR_COOLDOWN_MS) return;
-  recentScanTokens.set(decodedText, now);
-
-  // Maklum balas segera bahawa kamera sudah membaca QR.
-  playTone(760, 0.06, 0.24, "sine");
-
-  scanQueue.push({value: decodedText, attempts: 0});
-  updateQueueFeedback_();
-  processScanQueue_();
-}
-
-function processScanQueue_() {
-  if (queueSending || scanQueue.length === 0) return;
-
-  queueSending = true;
-  const item = scanQueue[0];
-
-  sendQueuedScan_(item.value)
-    .then(function(data) {
-      scanQueue.shift();
-      queueSending = false;
-      showResult(data, item.value);
-      updateQueueFeedback_(data);
-      processScanQueue_();
-    })
-    .catch(function(error) {
-      queueSending = false;
-
-      if (item.attempts < MAX_QUEUE_RETRIES) {
-        item.attempts++;
-        setScanFeedback(
-          "Sambungan perlahan. Mencuba semula (" +
-          item.attempts + "/" + MAX_QUEUE_RETRIES + ")...",
-          "pending"
-        );
-        setTimeout(processScanQueue_, 400);
-        return;
-      }
-
-      scanQueue.shift();
-      soundError();
-      setScanFeedback(
-        (error && error.message) || "Rekod gagal disimpan. Imbas semula QR ini.",
-        "error"
-      );
-      processScanQueue_();
-    });
-}
-
-function sendQueuedScan_(qrValue) {
-  return new Promise(function(resolve, reject) {
-    const callbackName =
-      "scanQueueCallback_" + crypto.randomUUID().replace(/-/g, "");
-    const script = document.createElement("script");
-    let completed = false;
-
-    const finish = function(error, data) {
-      if (completed) return;
-      completed = true;
-      clearTimeout(timeout);
-      try { delete window[callbackName]; } catch (cleanupError) {}
-      try { script.remove(); } catch (cleanupError) {}
-      error ? reject(error) : resolve(data);
-    };
-
-    const timeout = setTimeout(function() {
-      finish(new Error("API tidak memberi respons. Semak sambungan Internet."));
-    }, 12000);
-
-    window[callbackName] = function(data) {
-      finish(null, data);
-    };
-
-    script.onerror = function() {
-      finish(new Error("Tidak dapat menghubungi SMART ATTENDANCE."));
-    };
-
-    const url = new URL(API_URL);
-    url.search = new URLSearchParams({
-      action: "scan",
-      id: qrValue,
-      callback: callbackName,
-      t: Date.now().toString()
-    }).toString();
-
-    script.src = url.href;
-    document.body.appendChild(script);
-  });
-}
-
-function updateQueueFeedback_(finalData) {
-  if (scanQueue.length > 0) {
-    setScanFeedback(
-      scanQueue.length +
-      (scanQueue.length === 1
-        ? " rekod sedang disimpan..."
-        : " rekod menunggu untuk disimpan..."),
-      "pending"
-    );
-  } else if (
-    lastSuccessfulScan &&
-    (!finalData || finalData.success || finalData.duplicate)
-  ) {
-    setScanFeedback("Semua rekod telah disimpan. Sedia untuk QR seterusnya.", "");
-  }
-}
-
-function onScanSuccessLegacy_(
+function onScanSuccess(
   decodedText
 ) {
 
@@ -2271,7 +2157,7 @@ function prepareNextScan() {
 
     },
 
-    120
+    0
 
   );
 
