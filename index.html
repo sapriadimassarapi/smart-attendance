@@ -958,6 +958,47 @@
     @media (max-width:600px) { .container { padding:82px 10px 0; } .brand-header { min-height:64px; grid-template-columns:46px 42px 42px minmax(0,1fr); gap:5px; padding:5px 8px; } .brand-logo { width:42px; height:50px; } .portal-home { width:44px; height:44px; border-radius:13px; } .brand-title h1 { font-size:15px; } .brand-title .subtitle { font-size:9px; } .scanner-heading { padding:19px 18px; border-radius:17px; } .scanner-heading p { font-size:12px; } .scan-info { padding:17px 13px; } }
     @media (prefers-reduced-motion:reduce) { .header-colour-runner i { animation:none!important; } }
 
+    /* Kotak keputusan kekal sama tinggi untuk semua keadaan. */
+    #result,
+    #result.success,
+    #result.duplicate {
+      height: 230px;
+      min-height: 230px;
+      max-height: 230px;
+      padding: 18px 14px;
+      overflow: hidden;
+      justify-content: center;
+    }
+    #result .name {
+      max-width: 100%;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+
+    /* Loading bot + buih untuk pramuat senarai kelas dan murid. */
+    .manual-loader { min-height:132px; display:grid; place-items:center; gap:8px; padding:8px; }
+    .manual-loader[hidden] { display:none; }
+    .loader-scene { position:relative; width:118px; height:76px; }
+    .loader-bot { position:absolute; left:31px; bottom:0; width:56px; height:51px; border:3px solid var(--portal-green); border-radius:18px; background:#fff; box-shadow:0 8px 18px rgba(11,91,73,.14); animation:botFloat 1.55s ease-in-out infinite; }
+    .loader-bot::before { content:""; position:absolute; left:24px; top:-12px; width:3px; height:10px; background:var(--portal-green); }
+    .loader-bot::after { content:""; position:absolute; left:20px; top:-18px; width:10px; height:10px; border-radius:50%; background:var(--portal-yellow); border:2px solid var(--portal-green); }
+    .bot-eye { position:absolute; top:17px; width:7px; height:7px; border-radius:50%; background:var(--portal-green); animation:botBlink 2.8s infinite; }
+    .bot-eye.left { left:13px; } .bot-eye.right { right:13px; }
+    .bot-mouth { position:absolute; left:18px; top:31px; width:16px; height:7px; border:2px solid var(--portal-green); border-top:0; border-radius:0 0 12px 12px; }
+    .loader-bubble { position:absolute; border-radius:50%; background:rgba(242,200,75,.62); border:1px solid rgba(11,91,73,.22); animation:bubbleRise 1.8s ease-in-out infinite; }
+    .loader-bubble.b1 { width:13px; height:13px; left:7px; bottom:7px; }
+    .loader-bubble.b2 { width:9px; height:9px; right:12px; bottom:18px; animation-delay:-.6s; }
+    .loader-bubble.b3 { width:17px; height:17px; right:0; bottom:45px; animation-delay:-1.15s; }
+    .loader-message { margin:0; color:#315941; font-size:13px; font-weight:700; }
+    #manualReady { color:var(--portal-green); font-size:18px; font-weight:900; letter-spacing:1.5px; }
+    #manualRetry { min-height:40px; padding:8px 16px; }
+    @keyframes botFloat { 50% { transform:translateY(-6px); } }
+    @keyframes botBlink { 0%,45%,50%,100% { transform:scaleY(1); } 47% { transform:scaleY(.12); } }
+    @keyframes bubbleRise { 0% { opacity:0; transform:translateY(8px) scale(.7); } 35% { opacity:1; } 100% { opacity:0; transform:translateY(-24px) scale(1.08); } }
+    @media (prefers-reduced-motion:reduce) { .loader-bot,.loader-bubble,.bot-eye { animation:none!important; } }
+
     /* Header padat: semua item dan maklumat asal dikekalkan. */
     .container { padding-top: 50px; }
     .brand-header {
@@ -1084,16 +1125,6 @@
 
   </header>
 
-  <section class="scanner-heading" aria-labelledby="scannerTitle">
-    <span>KEHADIRAN PELAJAR</span>
-    <h2 id="scannerTitle">Scanner QR</h2>
-    <p>Halakan kamera pada kod QR murid untuk merekod kehadiran.</p>
-  </section>
-
-
-
-
-
   <button
     id="startButton"
     onclick="startScanner()"
@@ -1160,11 +1191,20 @@
 
   <section id="manualPanel" class="manual-panel" aria-label="Rekod kehadiran tanpa QR">
     <h2>Rekod kehadiran tanpa QR</h2>
+    <div id="manualLoader" class="manual-loader" role="status" aria-live="polite">
+      <div class="loader-scene" aria-hidden="true">
+        <span class="loader-bubble b1"></span><span class="loader-bubble b2"></span><span class="loader-bubble b3"></span>
+        <div class="loader-bot"><i class="bot-eye left"></i><i class="bot-eye right"></i><i class="bot-mouth"></i></div>
+      </div>
+      <p class="loader-message">Bot sedang menyediakan data kelas dan murid...</p>
+    </div>
+    <div id="manualReady" hidden>READY!</div>
     <label for="manualClass">Kelas</label>
     <select id="manualClass" disabled><option value="">Memuatkan kelas...</option></select>
     <label for="manualStudent">Nama murid</label>
     <select id="manualStudent" disabled><option value="">Pilih nama</option></select>
     <button id="manualSubmit" type="button" disabled>Rekod kehadiran</button>
+    <button id="manualRetry" type="button" hidden>Cuba semula</button>
     <p id="manualStatus" role="status">Pilih kelas, kemudian pilih nama murid.</p>
   </section>
 
@@ -2435,45 +2475,27 @@ function escapeHtml(
 }
 
 let manualStudents = [];
-async function loadManualRoster() {
-  if (!validLaunch) return;
-  const status = document.getElementById("manualStatus");
-  const select = document.getElementById("manualClass");
-  select.disabled = true;
-  status.textContent = "Memuatkan senarai kelas...";
-  try {
-    const data = await scannerApi("classes");
-    if (!data.success) throw new Error(data.message || "Senarai kelas tidak dapat dimuatkan.");
-    select.replaceChildren(new Option("Pilih kelas", ""), ...(data.classes || []).map(k => new Option(k.nama, k.kelasId)));
-    select.disabled = !(data.classes || []).length;
-    status.textContent = select.disabled ? "Tiada kelas ditemui dalam helaian Murid." : "Pilih kelas, kemudian pilih nama murid.";
-  } catch (error) {
-    status.textContent = (error.message || "Senarai kelas tidak tersedia.") + " Semak penerbitan SMART ATTENDANCE dan muat semula halaman.";
-  }
-}
-let manualClassRequest = 0;
-document.getElementById("manualClass").addEventListener("change", async function() {
-  const request = ++manualClassRequest;
+const manualRosterByClass = new Map();
+let rosterLoadPromise = null;
+
+document.getElementById("manualClass").addEventListener("change", function() {
   const kelas = this.value;
   const select = document.getElementById("manualStudent");
   const status = document.getElementById("manualStatus");
-  select.replaceChildren(new Option(kelas ? "Memuatkan nama..." : "Pilih nama", ""));
-  select.disabled = true;
   document.getElementById("manualSubmit").disabled = true;
-  if (!kelas) { status.textContent = "Pilih kelas, kemudian pilih nama murid."; return; }
-  status.textContent = "Memuatkan murid dalam kelas " + kelas + "...";
-  try {
-    const data = await scannerApi("students", {kelas});
-    if (request !== manualClassRequest) return;
-    if (!data.success) throw new Error(data.message || "Senarai murid tidak tersedia.");
-    manualStudents = data.students || [];
-    select.replaceChildren(new Option("Pilih nama", ""), ...manualStudents.map(s => new Option(s.nama, s.muridId)));
-    select.disabled = !manualStudents.length;
-    status.textContent = manualStudents.length ? "Pilih nama murid untuk merekod kehadiran." : "Tiada murid dalam kelas ini.";
-  } catch (error) {
-    if (request !== manualClassRequest) return;
-    status.textContent = error.message || "Senarai murid tidak tersedia.";
-  }
+  manualStudents = kelas ? (manualRosterByClass.get(kelas) || []) : [];
+  select.replaceChildren(new Option("Pilih nama", ""), ...manualStudents.map(s => new Option(s.nama, s.muridId)));
+  select.disabled = !manualStudents.length;
+  status.textContent = !kelas
+    ? "Pilih kelas, kemudian pilih nama murid."
+    : manualStudents.length
+      ? "Pilih nama murid untuk merekod kehadiran."
+      : "Tiada murid dalam kelas ini.";
+});
+
+document.getElementById("manualRetry").addEventListener("click", function() {
+  rosterLoadPromise = null;
+  preloadStudentDirectory(true);
 });
 document.getElementById("manualStudent").addEventListener("change", function() {
   document.getElementById("manualSubmit").disabled = !this.value;
@@ -2527,36 +2549,72 @@ function saveStudentDirectoryCache() {
 
 // Ambil semua nama seawal mungkin. Pada lawatan seterusnya, cache di atas
 // membolehkan nama dipaparkan serta-merta sebelum rangkaian selesai.
-async function preloadStudentDirectory() {
+async function preloadStudentDirectory(force = false) {
   if (!validLaunch) return;
-  try {
-    const classData = await scannerApi("classes");
-    if (!classData.success || !Array.isArray(classData.classes)) return;
-    const responses = await Promise.allSettled(classData.classes.map(async kelas => {
-      const data = await scannerApi("students", {kelas:kelas.kelasId});
-      if (!data.success) return;
-      (data.students || []).forEach(student => {
-        const id = String(student.muridId || student.id || "").trim();
-        if (!id) return;
-        studentDirectory.set(id, {
-          id,
-          nama: student.nama || "Pelajar",
-          kelas: student.kelas || kelas.nama || kelas.kelasId || ""
+  if (rosterLoadPromise && !force) return rosterLoadPromise;
+
+  const loader = document.getElementById("manualLoader");
+  const ready = document.getElementById("manualReady");
+  const retry = document.getElementById("manualRetry");
+  const classSelect = document.getElementById("manualClass");
+  const studentSelect = document.getElementById("manualStudent");
+  const status = document.getElementById("manualStatus");
+  loader.hidden = false;
+  ready.hidden = true;
+  retry.hidden = true;
+  classSelect.disabled = true;
+  studentSelect.disabled = true;
+  status.textContent = "Memuatkan semua kelas dan nama murid...";
+
+  rosterLoadPromise = (async function() {
+    try {
+      const classData = await scannerApi("classes");
+      if (!classData.success || !Array.isArray(classData.classes) || !classData.classes.length) {
+        throw new Error(classData.message || "Tiada kelas ditemui.");
+      }
+
+      manualRosterByClass.clear();
+      const responses = await Promise.all(classData.classes.map(async kelas => {
+        const data = await scannerApi("students", {kelas:kelas.kelasId});
+        if (!data.success) throw new Error(data.message || ("Data kelas " + kelas.nama + " gagal dimuatkan."));
+        const students = data.students || [];
+        manualRosterByClass.set(String(kelas.kelasId), students);
+        students.forEach(student => {
+          const id = String(student.muridId || student.id || "").trim();
+          if (!id) return;
+          studentDirectory.set(id, {
+            id,
+            nama: student.nama || "Pelajar",
+            kelas: student.kelas || kelas.nama || kelas.kelasId || ""
+          });
         });
-      });
-    }));
-    if (responses.some(item => item.status === "fulfilled")) saveStudentDirectoryCache();
-  } catch (error) {
-    // Cache lama masih boleh digunakan; kegagalan pramuat tidak menyekat kamera.
-    console.warn("Direktori murid belum dapat dikemas kini:", error);
-  }
+      }));
+
+      if (responses.length !== classData.classes.length) throw new Error("Sebahagian data murid belum tersedia.");
+      saveStudentDirectoryCache();
+      classSelect.replaceChildren(new Option("Pilih kelas", ""), ...classData.classes.map(k => new Option(k.nama, k.kelasId)));
+      classSelect.disabled = false;
+      loader.hidden = true;
+      ready.hidden = false;
+      status.textContent = "Semua data tersedia. Pilih kelas dan nama murid.";
+    } catch (error) {
+      loader.hidden = true;
+      ready.hidden = true;
+      retry.hidden = false;
+      classSelect.replaceChildren(new Option("Data belum tersedia", ""));
+      status.textContent = (error.message || "Data tidak dapat dimuatkan.") + " Tekan Cuba semula.";
+      console.warn("Direktori murid belum dapat dikemas kini:", error);
+      throw error;
+    }
+  })();
+
+  return rosterLoadPromise;
 }
 
 
 window.addEventListener("pageshow", function() {
   if (validLaunch && !cameraRunning) startScanner();
-  if (validLaunch) loadManualRoster();
-  if (validLaunch) preloadStudentDirectory();
+  if (validLaunch) preloadStudentDirectory().catch(function() {});
 });
 window.addEventListener("pagehide", stopScanner);
 
