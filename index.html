@@ -930,12 +930,15 @@
       z-index:50;
       inset:0 0 auto;
       width:100%;
+      max-width:100vw;
+      box-sizing:border-box;
+      overflow:hidden;
       margin:0;
       height:var(--header-height);
       min-height:var(--header-height);
       max-height:var(--header-height);
       display:grid;
-      grid-template-columns:56px 56px minmax(0,1fr) minmax(92px,auto);
+      grid-template-columns:auto auto minmax(0,1fr) auto;
       align-items:center;
       padding:7px max(var(--scanner-gap),calc((100vw - 860px)/2));
       gap:7px;
@@ -947,15 +950,17 @@
       border-bottom:1px solid #98b9a0;
       box-shadow:0 8px 24px rgba(28,76,50,.16),inset 0 1px 0 rgba(255,255,255,.48);
     }
-    .brand-logo { width:54px;height:54px;object-fit:contain;display:block;filter:drop-shadow(0 3px 4px rgba(24,73,43,.15)); }
+    .brand-logo { width:clamp(34px,10vw,52px);height:clamp(40px,12vw,56px);min-width:0;object-fit:contain;display:block;filter:drop-shadow(0 3px 4px rgba(24,73,43,.15)); }
     .brand-logo:not(.brand-logo-right) { grid-column:1; }
     .brand-logo-right { grid-column:2;justify-self:center; }
-    .brand-title { grid-column:3;min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;text-align:left;white-space:normal; }
-    .brand-title .portal-label,.brand-title .school-name { color:#315941;font-size:11px;font-weight:800;line-height:1.05;letter-spacing:.45px; }
-    .brand-title h1 { margin:0;color:#17462f;font-size:clamp(22px,6vw,27px);font-weight:900;line-height:1.04;letter-spacing:0;white-space:nowrap; }
-    .header-clock { grid-column:4;min-width:92px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;color:#17462f;text-align:right;font-variant-numeric:tabular-nums; }
-    .header-clock strong { width:8ch;font-size:clamp(18px,3vw,27px);font-weight:900;line-height:1;letter-spacing:.25px;white-space:nowrap; }
-    .header-clock span { max-width:150px;margin-top:4px;font-size:clamp(8px,1.3vw,10px);font-weight:700;line-height:1.08;white-space:nowrap; }
+    .brand-title { grid-column:3;min-width:0;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;text-align:left;white-space:normal; }
+    .brand-title>* { max-width:100%; }
+    .brand-title .portal-label { margin:0;color:#17462f;font-size:clamp(16px,4.6vw,23px);font-weight:900;line-height:1.02;letter-spacing:.45px;white-space:normal;overflow-wrap:anywhere; }
+    .brand-title .scanner-label { color:#315941;font-size:clamp(9px,2.6vw,12px);font-weight:400;line-height:1.08;white-space:normal; }
+    .brand-title .school-name { color:#496b58;font-size:clamp(8px,2.3vw,11px);font-weight:400;line-height:1.08;white-space:normal; }
+    .header-clock { grid-column:4;min-width:0;max-width:100%;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;justify-self:end;color:#17462f;text-align:right;font-variant-numeric:tabular-nums;overflow:hidden; }
+    .header-clock strong { width:auto;max-width:100%;font-size:clamp(14px,4.8vw,25px);font-weight:900;line-height:1;letter-spacing:0;white-space:nowrap; }
+    .header-clock span { max-width:100%;margin-top:4px;font-size:clamp(7px,1.3vw,10px);font-weight:500;line-height:1.08;white-space:nowrap; }
 
     .reader-shell.front-camera #reader video { transform:scaleX(-1)!important; }
     .reader-shell.rear-camera #reader video { transform:none!important; }
@@ -1040,26 +1045,26 @@
     @keyframes buttonError { 25% { transform:translateX(-3px); } 50% { transform:translateX(3px); } 75% { transform:translateX(-2px); } }
 
     .scanner-system-overlay { background-color:rgba(235,244,237,.96);background-image:linear-gradient(rgba(235,244,237,.84),rgba(235,244,237,.84)),var(--songket-image);background-repeat:no-repeat,repeat;background-size:100% 100%,112px 112px; }
-    .portal-footer { background-color:#305845;background-image:linear-gradient(rgba(48,88,69,.46),rgba(48,88,69,.46)),var(--songket-image);background-repeat:no-repeat,repeat;background-size:100% 100%,96px 96px;background-blend-mode:normal,screen; }
+    .portal-footer { background-color:#305845;background-image:none;background-repeat:initial;background-size:initial;background-position:initial;background-blend-mode:normal; }
 
     @media (max-width:600px) {
       :root { --header-height:72px;--scanner-gap:12px; }
       .container { padding:calc(var(--header-height) + var(--scanner-gap)) var(--scanner-gap) 0; }
-      .brand-header { grid-template-columns:42px 42px minmax(0,1fr) minmax(76px,auto);height:var(--header-height);min-height:var(--header-height);max-height:var(--header-height);padding:6px 7px;gap:5px; }
-      .brand-logo { width:42px;height:50px; }
-      .brand-title .portal-label,.brand-title .school-name { font-size:10px;letter-spacing:.2px; }
-      .brand-title h1 { font-size:clamp(18px,5.1vw,22px); }
-      .header-clock { min-width:76px; }
-      .header-clock strong { font-size:clamp(15px,5vw,21px); }
+      .brand-header { grid-template-columns:clamp(34px,10vw,42px) clamp(34px,10vw,42px) minmax(0,1fr) auto;height:var(--header-height);min-height:var(--header-height);max-height:var(--header-height);padding:6px 7px;gap:4px; }
+      .brand-logo { width:100%;height:clamp(40px,12vw,50px); }
+      .brand-title .portal-label { font-size:clamp(15px,4.4vw,19px);letter-spacing:.25px; }
+      .brand-title .scanner-label { font-size:clamp(8px,2.45vw,10px); }
+      .brand-title .school-name { font-size:clamp(7.5px,2.25vw,9px); }
+      .header-clock strong { font-size:clamp(14px,4.6vw,19px); }
       .header-clock span { font-size:7.5px; }
     }
     @media (max-width:360px) {
-      .brand-header { grid-template-columns:38px 38px minmax(0,1fr) 70px;gap:4px;padding-inline:6px; }
-      .brand-logo { width:37px;height:46px; }
-      .brand-title h1 { font-size:16px; }
-      .brand-title .portal-label,.brand-title .school-name { font-size:8px; }
-      .header-clock { min-width:70px; }
-      .header-clock strong { font-size:15px; }
+      .brand-header { grid-template-columns:34px 34px minmax(0,1fr) auto;gap:3px;padding-inline:5px; }
+      .brand-logo { width:34px;height:42px; }
+      .brand-title .portal-label { font-size:15px; }
+      .brand-title .scanner-label { font-size:8px; }
+      .brand-title .school-name { font-size:7.5px; }
+      .header-clock strong { font-size:14px; }
       .header-clock span { display:block;font-size:7px; }
     }
     @media (prefers-reduced-motion:reduce) {
@@ -1090,7 +1095,7 @@
 
     <div class="brand-title">
       <h1 class="portal-label">PORTAL STAF</h1>
-      <sapan>Scanner Kehadiran</span>
+      <span class="scanner-label">Scanner Kehadiran</span>
       <span class="school-name">SK Pulau Sepanggar</span>
     </div>
 
