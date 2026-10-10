@@ -297,6 +297,64 @@
 
     }
 
+    .camera-controls {
+      width: min(100%, 44svh);
+      margin: 10px auto 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    #switchCameraButton {
+      min-height: 44px;
+      padding: 10px 16px;
+      border: 1px solid rgba(11,91,73,.22);
+      border-radius: 999px;
+      color: #fff;
+      background: #0b5b49;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(11,91,73,.2);
+    }
+
+    #switchCameraButton:disabled { opacity: .58; cursor: wait; }
+    #switchCameraButton[hidden] { display: none; }
+
+    .scan-success-flash {
+      position: absolute;
+      inset: 0;
+      z-index: 25;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      opacity: 0;
+      color: #fff;
+      font-size: clamp(54px, 18vw, 88px);
+      font-weight: 900;
+      background: rgba(38, 190, 91, .23);
+      text-shadow: 0 4px 22px rgba(0,0,0,.3);
+    }
+
+    .reader-shell.qr-detected .scan-success-flash {
+      animation: qrSuccessFlash .58s ease-out;
+    }
+
+    .reader-shell.qr-detected .scan-guide {
+      animation: qrGuidePulse .58s ease-out;
+    }
+
+    @keyframes qrSuccessFlash {
+      0% { opacity: 0; transform: scale(.82); }
+      22% { opacity: 1; transform: scale(1.06); }
+      100% { opacity: 0; transform: scale(1); }
+    }
+
+    @keyframes qrGuidePulse {
+      0%, 100% { filter: none; }
+      28% { filter: drop-shadow(0 0 18px #6cff79); }
+    }
+
 
     .scan-guide::after {
 
@@ -887,7 +945,7 @@
     .scanner-heading p { margin:0; color:#def3ed; font-size:14px; }
     #readerShell,.scan-info,.manual-panel,#loginPanel { border:1px solid rgba(11,91,73,.18); border-radius:18px; background:rgba(255,255,255,.88); box-shadow:0 16px 42px rgba(18,63,54,.1); }
     #readerShell { background:var(--portal-dark); }
-    .scan-corner { border-color:var(--portal-yellow)!important; }
+    .scan-corner { border-color:#d64545!important; filter:none!important; box-shadow:none!important; }
     #startButton,#manualSubmit { background:linear-gradient(135deg,var(--portal-green),#16816a); }
     .scan-info { --motif:rgba(35,92,57,.065); margin-top:22px; padding:22px; background-color:#e5f0e8; background-image:var(--songket-pattern); background-size:80px 80px,80px 80px,40px 40px; }
     .scan-info-title,.manual-panel h2,#loginPanel h2 { color:var(--portal-green); }
@@ -980,58 +1038,27 @@
         white-space: nowrap;
       }
     }
-
-    /* Kemas kini scanner sahaja; corak songket portal di atas dikekalkan tepat. */
-    .scanner-heading { display:none !important; }
-    .scan-corner { border-color:#e32636 !important; filter:drop-shadow(0 0 5px rgba(227,38,54,.88)); }
-
-    .camera-switch {
-      position:absolute; z-index:45; top:12px; right:12px; display:none;
-      width:44px; height:44px; padding:0; border:1px solid rgba(255,255,255,.72);
-      border-radius:50%; background:rgba(12,43,38,.78); color:#fff; font-size:22px;
-      box-shadow:0 5px 16px rgba(0,0,0,.22); cursor:pointer;
-    }
-    .reader-shell.scanning.has-multiple-cameras .camera-switch { display:grid; place-items:center; }
-    .camera-switch:disabled { opacity:.55; cursor:wait; }
-
-    .sea-loader {
-      position:absolute; inset:0; z-index:60; display:none; overflow:hidden;
-      color:#fff; background:linear-gradient(#7bddff 0 43%,#159bd3 43% 58%,#0877b9 58% 76%,#075682 76%);
-    }
-    .reader-shell.loading .sea-loader { display:block; }
-    .reader-shell.loading #reader { visibility:hidden; }
-    .sea-loader::before,.sea-loader::after {
-      content:""; position:absolute; left:-18%; width:136%; height:30%; border-radius:50%;
-      background:rgba(255,255,255,.24); animation:portalSeaWave 1.8s ease-in-out infinite alternate;
-    }
-    .sea-loader::before { top:38%; }
-    .sea-loader::after { top:53%; opacity:.42; animation-delay:-.7s; }
-    .portal-loader-boat {
-      position:absolute; z-index:3; top:40%; left:-32%; width:108px; height:70px;
-      animation:portalBoatCross 2.6s linear infinite,portalBoatBob .6s ease-in-out infinite alternate;
-    }
-    .portal-loader-boat .mast { position:absolute; left:47px; top:0; width:4px; height:51px; border-radius:3px; background:#65401f; }
-    .portal-loader-boat .sail { position:absolute; left:51px; top:2px; width:0; height:0; border-right:36px solid transparent; border-bottom:40px solid #f7f4e8; filter:drop-shadow(0 2px 2px rgba(0,0,0,.15)); }
-    .portal-loader-boat .hull { position:absolute; left:15px; top:43px; width:84px; height:21px; border-radius:4px 4px 40px 40px; background:linear-gradient(#d64545,#8b2430); box-shadow:0 4px 6px rgba(0,0,0,.22); }
-    .portal-loader-foam { position:absolute; z-index:2; left:5%; top:57%; color:#fff; font-size:24px; letter-spacing:5px; animation:portalFoam 1s ease-out infinite; }
-    .portal-loader-label { position:absolute; z-index:4; left:0; right:0; bottom:12%; font-weight:800; letter-spacing:.07em; text-shadow:0 2px 5px rgba(0,45,70,.65); }
-    @keyframes portalSeaWave { from{transform:translate(-2%,-7%) rotate(-1deg)} to{transform:translate(2%,7%) rotate(1deg)} }
-    @keyframes portalBoatCross { from{left:-32%} to{left:108%} }
+    /* Loading kamera menggunakan suasana laut dan bot portal. */
+    .camera-sea-loading { position:absolute; inset:0; z-index:60; display:none; overflow:hidden; color:#fff; background:linear-gradient(180deg,#87dcf7 0 42%,#28a9dc 42% 56%,#087dbb 56% 76%,#07547d 76% 100%); }
+    .reader-shell.camera-loading .camera-sea-loading { display:block; }
+    .reader-shell.camera-loading #reader { visibility:hidden; }
+    .camera-sea-loading::before,.camera-sea-loading::after { content:""; position:absolute; left:-18%; width:136%; height:31%; border-radius:50%; background:rgba(255,255,255,.25); animation:portalWave 1.8s ease-in-out infinite alternate; }
+    .camera-sea-loading::before { top:37%; }
+    .camera-sea-loading::after { top:53%; opacity:.42; animation-delay:-.75s; }
+    .boat-loading-scene { position:absolute; z-index:3; top:39%; left:-34%; width:116px; height:76px; animation:portalBoatPass 2.7s linear infinite,portalBoatBob .62s ease-in-out infinite alternate; }
+    .boat-loading-scene .boat-mast { position:absolute; left:50px; top:0; width:4px; height:54px; border-radius:3px; background:#62401f; }
+    .boat-loading-scene .boat-sail { position:absolute; left:54px; top:2px; width:0; height:0; border-right:39px solid transparent; border-bottom:43px solid var(--portal-cream); filter:drop-shadow(0 2px 2px rgba(0,0,0,.14)); }
+    .boat-loading-scene .boat-hull { position:absolute; left:15px; top:46px; width:91px; height:22px; border-radius:4px 4px 42px 42px; background:linear-gradient(#d64545,#8e2632); box-shadow:0 4px 6px rgba(0,0,0,.2); }
+    .boat-loading-scene .boat-window { position:absolute; z-index:2; left:48px; top:51px; width:8px; height:8px; border-radius:50%; background:#f2c84b; }
+    .boat-foam { position:absolute; z-index:2; left:5%; top:57%; color:#fff; font-size:24px; letter-spacing:5px; animation:portalFoam 1s ease-out infinite; }
+    .camera-loading-text { position:absolute; z-index:4; left:0; right:0; bottom:12%; font-size:13px; font-weight:800; letter-spacing:.08em; text-shadow:0 2px 5px rgba(0,45,70,.64); }
+    @keyframes portalWave { from{transform:translate(-2%,-7%) rotate(-1deg)} to{transform:translate(2%,7%) rotate(1deg)} }
+    @keyframes portalBoatPass { from{left:-34%} to{left:108%} }
     @keyframes portalBoatBob { from{margin-top:-4px;transform:rotate(-2deg)} to{margin-top:4px;transform:rotate(2deg)} }
-    @keyframes portalFoam { from{transform:translateX(0) scale(.7);opacity:.92} to{transform:translateX(58px) scale(1.15);opacity:0} }
-
-    .reader-shell.tv-reveal::after {
-      content:""; position:absolute; z-index:80; inset:0; pointer-events:none;
-      background:#07110f; animation:portalTvReveal .42s ease-out forwards;
-    }
-    @keyframes portalTvReveal {
-      0%{transform:scale(1);opacity:1} 42%{transform:scale(1,.018);background:#fff;opacity:1}
-      70%{transform:scale(.05,.018);opacity:.9} 100%{transform:scale(0,.018);opacity:0}
-    }
-    @media (prefers-reduced-motion:reduce) {
-      .portal-loader-boat,.sea-loader::before,.sea-loader::after,.portal-loader-foam{animation-duration:5s}
-      .reader-shell.tv-reveal::after{animation-duration:.01s}
-    }
+    @keyframes portalFoam { from{transform:translateX(0) scale(.72);opacity:.95} to{transform:translateX(62px) scale(1.16);opacity:0} }
+    .reader-shell.tv-transition::after { content:""; position:absolute; z-index:80; inset:0; pointer-events:none; background:#07110f; animation:tvPowerOff .42s ease-out forwards; }
+    @keyframes tvPowerOff { 0%{transform:scale(1);opacity:1} 43%{transform:scale(1,.018);background:#fff;opacity:1} 70%{transform:scale(.055,.018);opacity:.9} 100%{transform:scale(0,.018);opacity:0} }
+    @media (prefers-reduced-motion:reduce) { .boat-loading-scene,.camera-sea-loading::before,.camera-sea-loading::after,.boat-foam{animation-duration:5s} .reader-shell.tv-transition::after{animation-duration:.01s} }
   </style>
 
 </head>
@@ -1078,16 +1105,6 @@
 
   </header>
 
-  <section class="scanner-heading" aria-labelledby="scannerTitle">
-    <span>KEHADIRAN PELAJAR</span>
-    <h2 id="scannerTitle">Scanner QR</h2>
-    <p>Halakan kamera pada kod QR murid untuk merekod kehadiran.</p>
-  </section>
-
-
-
-
-
   <button
     id="startButton"
     onclick="startScanner()"
@@ -1105,15 +1122,13 @@
     class="reader-shell"
   >
 
-    <div class="sea-loader" aria-live="polite">
-      <div class="portal-loader-boat" aria-hidden="true"><i class="mast"></i><i class="sail"></i><i class="hull"></i></div>
-      <div class="portal-loader-foam" aria-hidden="true">○ ◦ ○</div>
-      <div class="portal-loader-label">MENYEDIAKAN SCANNER...</div>
+    <div class="camera-sea-loading" aria-live="polite">
+      <div class="boat-loading-scene" aria-hidden="true"><i class="boat-mast"></i><i class="boat-sail"></i><i class="boat-hull"></i><i class="boat-window"></i></div>
+      <div class="boat-foam" aria-hidden="true">○ ◦ ○</div>
+      <div class="camera-loading-text">MENYEDIAKAN SCANNER...</div>
     </div>
 
     <div id="reader"></div>
-
-    <button id="cameraSwitch" class="camera-switch" type="button" aria-label="Tukar kamera" title="Tukar kamera">↻</button>
 
     <div
       class="scan-guide"
@@ -1125,6 +1140,14 @@
       <span class="scan-corner bottom-right"></span>
     </div>
 
+    <div class="scan-success-flash" aria-hidden="true">✓</div>
+
+  </div>
+
+  <div class="camera-controls">
+    <button id="switchCameraButton" type="button" onclick="switchCamera()" hidden>
+      🔄 Tukar ke Kamera Depan
+    </button>
   </div>
 
 
@@ -1230,16 +1253,47 @@ let processing = false;
 
 let cameraRunning = false;
 let cameraStarting = false;
+let currentFacingMode = "environment";
+let scanEffectTimer = null;
 
-let availableCameras = [];
-let activeCameraIndex = 0;
-let preferredCameraId = "";
+function updateCameraButton() {
+  const button = document.getElementById("switchCameraButton");
+  if (!button) return;
+  button.textContent = currentFacingMode === "environment"
+    ? "🔄 Tukar ke Kamera Depan"
+    : "🔄 Tukar ke Kamera Belakang";
+  button.hidden = !cameraRunning;
+  button.disabled = cameraStarting;
+}
+
+function showScanEffect() {
+  const shell = document.getElementById("readerShell");
+  shell.classList.remove("qr-detected");
+  void shell.offsetWidth;
+  shell.classList.add("qr-detected");
+  clearTimeout(scanEffectTimer);
+  scanEffectTimer = setTimeout(function() {
+    shell.classList.remove("qr-detected");
+  }, 650);
+}
+
+async function switchCamera() {
+  if (cameraStarting || !validLaunch) return;
+  cameraStarting = true;
+  updateCameraButton();
+  currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+  await stopScanner();
+  cameraStarting = false;
+  updateCameraButton();
+  await startScanner();
+}
 
 async function stopScanner() {
   const current = scanner;
   scanner = null;
   cameraRunning = false;
   document.getElementById("readerShell").classList.remove("scanning");
+  updateCameraButton();
   if (!current) return;
   try { if (current.isScanning) await current.stop(); } catch (error) {}
   try { await current.clear(); } catch (error) {}
@@ -1453,13 +1507,17 @@ function playTone(
 
 function soundQrRead() {
 
-  // Beep kuat dan pendek seperti scanner di kaunter pasar raya.
+  // Beep kuat dan tajam seperti scanner di kaunter pasar raya.
   playTone(
     1850,
     0.075,
     0.92,
     "square"
   );
+
+  setTimeout(function() {
+    playTone(1420, 0.06, 0.82, "square");
+  }, 58);
 
 }
 
@@ -1601,8 +1659,8 @@ async function startScanner() {
     "⏳ MEMBUKA KAMERA...";
 
   const readerShell = document.getElementById("readerShell");
-  readerShell.classList.remove("tv-reveal");
-  readerShell.classList.add("loading");
+  readerShell.classList.remove("tv-transition");
+  readerShell.classList.add("camera-loading");
 
 
   if (!lastSuccessfulScan) {
@@ -1657,8 +1715,8 @@ async function startScanner() {
     await scanner.start(
 
 
-      preferredCameraId || {
-        facingMode: "environment"
+      {
+        facingMode: currentFacingMode
       },
 
 
@@ -1691,9 +1749,8 @@ async function startScanner() {
         aspectRatio: 1.0,
 
 
-        // Kamera belakang tidak menghasilkan imej cermin.
-        // Ini mengurangkan kerja decoder.
-        disableFlip: true
+        // Kamera depan lazimnya memerlukan pembalikan imej untuk decoder.
+        disableFlip: currentFacingMode === "environment"
 
       },
 
@@ -1745,22 +1802,12 @@ async function startScanner() {
     cameraRunning =
       true;
 
-    try {
-      availableCameras = await Html5Qrcode.getCameras();
-      const track = document.querySelector("#reader video")?.srcObject?.getVideoTracks?.()[0];
-      const activeId = track?.getSettings?.().deviceId || preferredCameraId;
-      const foundIndex = availableCameras.findIndex(camera => camera.id === activeId);
-      if (foundIndex >= 0) activeCameraIndex = foundIndex;
-      readerShell.classList.toggle("has-multiple-cameras", availableCameras.length > 1);
-    } catch (cameraListError) {
-      availableCameras = [];
-      readerShell.classList.remove("has-multiple-cameras");
-    }
-
-    readerShell.classList.remove("loading");
+    readerShell.classList.remove("camera-loading");
     void readerShell.offsetWidth;
-    readerShell.classList.add("tv-reveal");
-    setTimeout(function(){ readerShell.classList.remove("tv-reveal"); }, 480);
+    readerShell.classList.add("tv-transition");
+    setTimeout(function() {
+      readerShell.classList.remove("tv-transition");
+    }, 480);
 
 
     document.getElementById(
@@ -1772,6 +1819,8 @@ async function startScanner() {
 
 
     button.hidden = true;
+
+    updateCameraButton();
 
 
 
@@ -1791,7 +1840,9 @@ async function startScanner() {
     cameraRunning =
       false;
 
-    readerShell.classList.remove("loading", "tv-reveal", "has-multiple-cameras");
+    readerShell.classList.remove("camera-loading", "tv-transition");
+
+    updateCameraButton();
 
     try {
       if (scanner && scanner.isScanning) await scanner.stop();
@@ -1847,33 +1898,10 @@ async function startScanner() {
 
   finally {
     cameraStarting = false;
+    updateCameraButton();
   }
 
 }
-
-
-async function switchCamera() {
-  if (cameraStarting || availableCameras.length < 2) return;
-  const switchButton = document.getElementById("cameraSwitch");
-  switchButton.disabled = true;
-  try {
-    cameraStarting = true;
-    if (scanner && scanner.isScanning) await scanner.stop();
-    if (scanner) await scanner.clear();
-    scanner = null;
-    cameraRunning = false;
-    activeCameraIndex = (activeCameraIndex + 1) % availableCameras.length;
-    preferredCameraId = availableCameras[activeCameraIndex].id;
-  } catch (error) {
-    console.error(error);
-  } finally {
-    cameraStarting = false;
-    switchButton.disabled = false;
-  }
-  startScanner();
-}
-
-document.getElementById("cameraSwitch").addEventListener("click", switchCamera);
 
 
 
@@ -1927,6 +1955,7 @@ function onScanSuccess(
   lastDecodedAt = Date.now();
 
   soundQrRead();
+  showScanEffect();
 
 
   processing =
