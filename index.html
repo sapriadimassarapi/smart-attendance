@@ -945,7 +945,7 @@
     .scanner-heading p { margin:0; color:#def3ed; font-size:14px; }
     #readerShell,.scan-info,.manual-panel,#loginPanel { border:1px solid rgba(11,91,73,.18); border-radius:18px; background:rgba(255,255,255,.88); box-shadow:0 16px 42px rgba(18,63,54,.1); }
     #readerShell { background:var(--portal-dark); }
-    .scan-corner { border-color:#d64545!important; filter:none!important; box-shadow:none!important; }
+    .scan-corner { border-color:var(--portal-yellow)!important; }
     #startButton,#manualSubmit { background:linear-gradient(135deg,var(--portal-green),#16816a); }
     .scan-info { --motif:rgba(35,92,57,.065); margin-top:22px; padding:22px; background-color:#e5f0e8; background-image:var(--songket-pattern); background-size:80px 80px,80px 80px,40px 40px; }
     .scan-info-title,.manual-panel h2,#loginPanel h2 { color:var(--portal-green); }
@@ -1038,27 +1038,6 @@
         white-space: nowrap;
       }
     }
-    /* Loading kamera menggunakan suasana laut dan bot portal. */
-    .camera-sea-loading { position:absolute; inset:0; z-index:60; display:none; overflow:hidden; color:#fff; background:linear-gradient(180deg,#87dcf7 0 42%,#28a9dc 42% 56%,#087dbb 56% 76%,#07547d 76% 100%); }
-    .reader-shell.camera-loading .camera-sea-loading { display:block; }
-    .reader-shell.camera-loading #reader { visibility:hidden; }
-    .camera-sea-loading::before,.camera-sea-loading::after { content:""; position:absolute; left:-18%; width:136%; height:31%; border-radius:50%; background:rgba(255,255,255,.25); animation:portalWave 1.8s ease-in-out infinite alternate; }
-    .camera-sea-loading::before { top:37%; }
-    .camera-sea-loading::after { top:53%; opacity:.42; animation-delay:-.75s; }
-    .boat-loading-scene { position:absolute; z-index:3; top:39%; left:-34%; width:116px; height:76px; animation:portalBoatPass 2.7s linear infinite,portalBoatBob .62s ease-in-out infinite alternate; }
-    .boat-loading-scene .boat-mast { position:absolute; left:50px; top:0; width:4px; height:54px; border-radius:3px; background:#62401f; }
-    .boat-loading-scene .boat-sail { position:absolute; left:54px; top:2px; width:0; height:0; border-right:39px solid transparent; border-bottom:43px solid var(--portal-cream); filter:drop-shadow(0 2px 2px rgba(0,0,0,.14)); }
-    .boat-loading-scene .boat-hull { position:absolute; left:15px; top:46px; width:91px; height:22px; border-radius:4px 4px 42px 42px; background:linear-gradient(#d64545,#8e2632); box-shadow:0 4px 6px rgba(0,0,0,.2); }
-    .boat-loading-scene .boat-window { position:absolute; z-index:2; left:48px; top:51px; width:8px; height:8px; border-radius:50%; background:#f2c84b; }
-    .boat-foam { position:absolute; z-index:2; left:5%; top:57%; color:#fff; font-size:24px; letter-spacing:5px; animation:portalFoam 1s ease-out infinite; }
-    .camera-loading-text { position:absolute; z-index:4; left:0; right:0; bottom:12%; font-size:13px; font-weight:800; letter-spacing:.08em; text-shadow:0 2px 5px rgba(0,45,70,.64); }
-    @keyframes portalWave { from{transform:translate(-2%,-7%) rotate(-1deg)} to{transform:translate(2%,7%) rotate(1deg)} }
-    @keyframes portalBoatPass { from{left:-34%} to{left:108%} }
-    @keyframes portalBoatBob { from{margin-top:-4px;transform:rotate(-2deg)} to{margin-top:4px;transform:rotate(2deg)} }
-    @keyframes portalFoam { from{transform:translateX(0) scale(.72);opacity:.95} to{transform:translateX(62px) scale(1.16);opacity:0} }
-    .reader-shell.tv-transition::after { content:""; position:absolute; z-index:80; inset:0; pointer-events:none; background:#07110f; animation:tvPowerOff .42s ease-out forwards; }
-    @keyframes tvPowerOff { 0%{transform:scale(1);opacity:1} 43%{transform:scale(1,.018);background:#fff;opacity:1} 70%{transform:scale(.055,.018);opacity:.9} 100%{transform:scale(0,.018);opacity:0} }
-    @media (prefers-reduced-motion:reduce) { .boat-loading-scene,.camera-sea-loading::before,.camera-sea-loading::after,.boat-foam{animation-duration:5s} .reader-shell.tv-transition::after{animation-duration:.01s} }
   </style>
 
 </head>
@@ -1105,6 +1084,16 @@
 
   </header>
 
+  <section class="scanner-heading" aria-labelledby="scannerTitle">
+    <span>KEHADIRAN PELAJAR</span>
+    <h2 id="scannerTitle">Scanner QR</h2>
+    <p>Halakan kamera pada kod QR murid untuk merekod kehadiran.</p>
+  </section>
+
+
+
+
+
   <button
     id="startButton"
     onclick="startScanner()"
@@ -1121,12 +1110,6 @@
     id="readerShell"
     class="reader-shell"
   >
-
-    <div class="camera-sea-loading" aria-live="polite">
-      <div class="boat-loading-scene" aria-hidden="true"><i class="boat-mast"></i><i class="boat-sail"></i><i class="boat-hull"></i><i class="boat-window"></i></div>
-      <div class="boat-foam" aria-hidden="true">○ ◦ ○</div>
-      <div class="camera-loading-text">MENYEDIAKAN SCANNER...</div>
-    </div>
 
     <div id="reader"></div>
 
@@ -1507,17 +1490,17 @@ function playTone(
 
 function soundQrRead() {
 
-  // Beep kuat dan tajam seperti scanner di kaunter pasar raya.
+  // Dua nada pendek yang lebih jelas mengesahkan QR telah dibaca.
   playTone(
-    1850,
-    0.075,
-    0.92,
+    820,
+    0.09,
+    0.48,
     "square"
   );
 
   setTimeout(function() {
-    playTone(1420, 0.06, 0.82, "square");
-  }, 58);
+    playTone(1120, 0.12, 0.55, "square");
+  }, 75);
 
 }
 
@@ -1657,10 +1640,6 @@ async function startScanner() {
 
   button.innerHTML =
     "⏳ MEMBUKA KAMERA...";
-
-  const readerShell = document.getElementById("readerShell");
-  readerShell.classList.remove("tv-transition");
-  readerShell.classList.add("camera-loading");
 
 
   if (!lastSuccessfulScan) {
@@ -1802,13 +1781,6 @@ async function startScanner() {
     cameraRunning =
       true;
 
-    readerShell.classList.remove("camera-loading");
-    void readerShell.offsetWidth;
-    readerShell.classList.add("tv-transition");
-    setTimeout(function() {
-      readerShell.classList.remove("tv-transition");
-    }, 480);
-
 
     document.getElementById(
       "readerShell"
@@ -1839,8 +1811,6 @@ async function startScanner() {
 
     cameraRunning =
       false;
-
-    readerShell.classList.remove("camera-loading", "tv-transition");
 
     updateCameraButton();
 
