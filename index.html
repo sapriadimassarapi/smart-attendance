@@ -921,11 +921,11 @@
     #scanFeedback.error { color:#9b2431; background:#fdebed; }
 
     /* Tema Portal Staf — scanner kekal di GitHub untuk akses kamera. */
-    :root { --portal-green:#0b5b49; --portal-dark:#123f36; --portal-mint:#dceee5; --portal-cream:#f7f4e8; --portal-yellow:#f2c84b; --portal-red:#d64545; --portal-blue:#2868b2; --scanner-gap:14px; --compact-header:78px; --songket-shift:0px; --content-parallax:0px; --songket-pattern:repeating-linear-gradient(45deg,transparent 0 19px,var(--motif) 19px 20px,transparent 20px 40px),repeating-linear-gradient(-45deg,transparent 0 19px,var(--motif) 19px 20px,transparent 20px 40px),radial-gradient(circle,var(--motif) 0 1.5px,transparent 2px); }
+    :root { --portal-green:#0b5b49; --portal-dark:#123f36; --portal-mint:#dceee5; --portal-cream:#f7f4e8; --portal-yellow:#f2c84b; --portal-red:#d64545; --portal-blue:#2868b2; --header-height:78px; --scanner-gap:14px; --songket-shift:0px; --content-parallax:0px; --songket-pattern:repeating-linear-gradient(45deg,transparent 0 19px,var(--motif) 19px 20px,transparent 20px 40px),repeating-linear-gradient(-45deg,transparent 0 19px,var(--motif) 19px 20px,transparent 20px 40px),radial-gradient(circle at 20px 20px,var(--songket-gold) 0 1.2px,transparent 1.5px),radial-gradient(circle,var(--motif) 0 1.5px,transparent 2px); --songket-sizes:80px 80px,80px 80px,40px 40px,40px 40px; }
     html { background:var(--portal-cream); }
-    body { --motif:rgba(35,92,57,.055); background-color:#edf4ee; background-image:var(--songket-pattern),linear-gradient(180deg,#edf5ef,#f7f4e8); background-size:80px 80px,80px 80px,40px 40px,100% 100%; color:var(--portal-dark); }
+    body { --motif:rgba(35,92,57,.055); --songket-gold:rgba(184,142,45,.075); background-color:#edf4ee; background-image:var(--songket-pattern),linear-gradient(180deg,#edf5ef,#f7f4e8); background-size:var(--songket-sizes),100% 100%; color:var(--portal-dark); }
     .container { width:min(100%,860px); max-width:860px; padding:96px 18px 0; }
-    .brand-header { --motif:rgba(35,92,57,.095); position:fixed; z-index:50; inset:0 0 auto; min-height:64px; margin:0; grid-template-columns:52px 48px 48px minmax(0,1fr); gap:8px; padding:6px max(14px,calc((100vw - 860px)/2)); background-color:#d2e1d3; background-image:var(--songket-pattern); background-size:80px 80px,80px 80px,40px 40px; border:0; box-shadow:0 7px 22px rgba(27,61,47,.1); }
+    .brand-header { --motif:rgba(35,92,57,.095); --songket-gold:rgba(175,127,24,.13); position:fixed; z-index:50; inset:0 0 auto; min-height:64px; margin:0; grid-template-columns:52px 48px 48px minmax(0,1fr); gap:8px; padding:6px max(14px,calc((100vw - 860px)/2)); background-color:#d2e1d3; background-image:var(--songket-pattern); background-size:var(--songket-sizes); border:0; box-shadow:0 7px 22px rgba(27,61,47,.1); }
     .brand-logo { height:58px; width:58px; object-fit:contain; }
     .brand-logo-right { order:3; }
     .brand-title { order:4; text-align:left; }
@@ -947,13 +947,13 @@
     #readerShell { background:var(--portal-dark); }
     .scan-corner { border-color:var(--portal-yellow)!important; }
     #startButton,#manualSubmit { background:linear-gradient(135deg,var(--portal-green),#16816a); }
-    .scan-info { --motif:rgba(35,92,57,.065); margin-top:22px; padding:22px; background-color:#e5f0e8; background-image:var(--songket-pattern); background-size:80px 80px,80px 80px,40px 40px; }
+    .scan-info { --motif:rgba(35,92,57,.065); --songket-gold:rgba(184,142,45,.06); margin-top:22px; padding:22px; background-color:#e5f0e8; background-image:var(--songket-pattern); background-size:var(--songket-sizes); }
     .scan-info-title,.manual-panel h2,#loginPanel h2 { color:var(--portal-green); }
     .scan-tips { gap:10px; }
     .scan-tip { min-height:62px; border:1px solid rgba(11,91,73,.13); border-radius:14px; background:rgba(255,255,255,.72); color:#315941; }
     .scan-tip-icon { color:var(--portal-green); }
     .privacy-note { border-radius:13px; background:#d5e8dc; color:#315941; }
-    .portal-footer { --motif:rgba(236,211,139,.14); width:100vw; max-width:none; margin:32px calc(50% - 50vw) 0; padding:22px max(18px,calc((100vw - 860px)/2)); text-align:center; color:#f4f7ee; border:0; background-color:#305845; background-image:var(--songket-pattern); background-size:80px 80px,80px 80px,40px 40px; font-size:12px; font-weight:500; line-height:1.55; }
+    .portal-footer { --motif:rgba(236,211,139,.14); --songket-gold:rgba(244,210,112,.17); width:100vw; max-width:none; margin:32px calc(50% - 50vw) 0; padding:22px max(18px,calc((100vw - 860px)/2)); text-align:center; color:#f4f7ee; border:0; background-color:#305845; background-image:var(--songket-pattern); background-size:var(--songket-sizes); font-size:12px; font-weight:500; line-height:1.55; }
     .portal-footer strong { display:block; color:#fff; margin-bottom:8px; }
     @media (max-width:600px) { .container { padding:82px 10px 0; } .brand-header { min-height:64px; grid-template-columns:46px 42px 42px minmax(0,1fr); gap:5px; padding:5px 8px; } .brand-logo { width:42px; height:50px; } .portal-home { width:44px; height:44px; border-radius:13px; } .brand-title h1 { font-size:15px; } .brand-title .subtitle { font-size:9px; } .scanner-heading { padding:19px 18px; border-radius:17px; } .scanner-heading p { font-size:12px; } .scan-info { padding:17px 13px; } }
     @media (prefers-reduced-motion:reduce) { .header-colour-runner i { animation:none!important; } }
@@ -1003,25 +1003,29 @@
 
     /* Susun atur akhir berdasarkan tema songket sebenar Portal Guru. */
     body {
-      --motif:rgba(28,87,56,.09);
+      --motif:rgba(28,87,56,.085);
+      --songket-gold:rgba(184,142,45,.08);
       background-color:#f1f6f1;
       background-image:var(--songket-pattern),linear-gradient(180deg,#edf3db,#cfe7da);
-      background-size:80px 80px,80px 80px,40px 40px,100% 100%;
-      background-position:0 var(--songket-shift),0 var(--songket-shift),0 var(--songket-shift),center top;
+      background-size:var(--songket-sizes),100% 100%;
+      background-position:0 var(--songket-shift),0 var(--songket-shift),0 var(--songket-shift),0 var(--songket-shift),center top;
     }
-    .container { padding:calc(var(--compact-header) + var(--scanner-gap)) var(--scanner-gap) 0; }
+    .container { padding:calc(var(--header-height) + var(--scanner-gap)) var(--scanner-gap) 0; }
     .reader-shell,.camera-controls { width:min(100%,430px); }
     .brand-header {
       --motif:rgba(35,92,57,.15);
-      min-height:var(--compact-header);
+      --songket-gold:rgba(177,126,20,.16);
+      height:var(--header-height);
+      min-height:var(--header-height);
+      max-height:var(--header-height);
       display:grid;
       grid-template-columns:44px 56px minmax(0,1fr) 56px minmax(92px,auto);
       align-items:center;
       padding:7px max(var(--scanner-gap),calc((100vw - 860px)/2));
       gap:7px;
       background-color:#b9d1bd;
-      background-image:var(--songket-pattern);
-      background-size:80px 80px,80px 80px,40px 40px;
+      background-image:linear-gradient(90deg,rgba(255,255,255,.13),rgba(255,255,255,.025)),var(--songket-pattern);
+      background-size:100% 100%,var(--songket-sizes);
       border-bottom:1px solid #98b9a0;
       box-shadow:0 8px 24px rgba(28,76,50,.16),inset 0 1px 0 rgba(255,255,255,.48);
     }
@@ -1046,9 +1050,10 @@
     }
     .manual-panel,.scan-info {
       --motif:rgba(28,87,56,.085);
+      --songket-gold:rgba(184,142,45,.065);
       background-color:#e2eedb;
       background-image:var(--songket-pattern),linear-gradient(145deg,rgba(247,251,239,.95),rgba(220,235,218,.94));
-      background-size:80px 80px,80px 80px,40px 40px,auto;
+      background-size:var(--songket-sizes),auto;
       transform:translate3d(0,var(--content-parallax),0);
       will-change:transform;
     }
@@ -1120,13 +1125,13 @@
     @keyframes buttonSuccess { 45% { box-shadow:0 0 0 8px rgba(95,170,91,.18);transform:scale(1.025); } }
     @keyframes buttonError { 25% { transform:translateX(-3px); } 50% { transform:translateX(3px); } 75% { transform:translateX(-2px); } }
 
-    .scanner-system-overlay { --motif:rgba(28,87,56,.055);background-color:rgba(235,244,237,.96);background-image:var(--songket-pattern);background-size:80px 80px,80px 80px,40px 40px; }
-    .portal-footer { --motif:rgba(236,211,139,.19);background-color:#305845;background-image:var(--songket-pattern);background-size:80px 80px,80px 80px,40px 40px; }
+    .scanner-system-overlay { --motif:rgba(28,87,56,.055);--songket-gold:rgba(184,142,45,.055);background-color:rgba(235,244,237,.96);background-image:var(--songket-pattern);background-size:var(--songket-sizes); }
+    .portal-footer { --motif:rgba(236,211,139,.19);--songket-gold:rgba(244,210,112,.2);background-color:#305845;background-image:var(--songket-pattern);background-size:var(--songket-sizes); }
 
     @media (max-width:600px) {
-      :root { --compact-header:72px;--scanner-gap:12px; }
-      .container { padding:calc(var(--compact-header) + var(--scanner-gap)) var(--scanner-gap) 0; }
-      .brand-header { grid-template-columns:38px 44px minmax(0,1fr) 44px minmax(76px,auto);min-height:var(--compact-header);padding:6px 7px;gap:4px; }
+      :root { --header-height:72px;--scanner-gap:12px; }
+      .container { padding:calc(var(--header-height) + var(--scanner-gap)) var(--scanner-gap) 0; }
+      .brand-header { grid-template-columns:38px 44px minmax(0,1fr) 44px minmax(76px,auto);height:var(--header-height);min-height:var(--header-height);max-height:var(--header-height);padding:6px 7px;gap:4px; }
       .portal-home { width:38px;height:38px;border-radius:11px; }
       .portal-home svg { width:20px;height:20px; }
       .brand-logo { width:42px;height:50px; }
@@ -1144,10 +1149,10 @@
       .brand-title .portal-label,.brand-title .school-name { font-size:7px; }
       .header-clock { min-width:70px; }
       .header-clock strong { font-size:15px; }
-      .header-clock span { display:none; }
+      .header-clock span { display:block;font-size:7px; }
     }
     @media (prefers-reduced-motion:reduce) {
-      body { background-position:0 0,0 0,0 0,center top; }
+      body { background-position:0 0,0 0,0 0,0 0,center top; }
       .manual-panel,.scan-info { transform:none!important; }
       button,.portal-home { transition:none!important; }
       .interaction-ripple { display:none!important; }
@@ -1379,8 +1384,7 @@ const validApi = (() => {
 })();
 const validLaunch = validApi;
 
-if (RETURN_URL) document.getElementById("portalHome").href = RETURN_URL;
-else document.getElementById("portalHome").hidden = true;
+document.getElementById("portalHome").href = RETURN_URL || "./";
 
 if (!validLaunch) document.querySelector("#result .waiting").textContent = "API SMART ATTENDANCE tidak tersedia.";
 if (!validApi) {
@@ -1427,13 +1431,23 @@ const headerDateFormatter = new Intl.DateTimeFormat("ms-MY", {
   month: "long",
   year: "numeric"
 });
+const headerShortDateFormatter = new Intl.DateTimeFormat("ms-MY", {
+  timeZone: "Asia/Kuala_Lumpur",
+  day: "numeric",
+  month: "short",
+  year: "numeric"
+});
 
 function updateHeaderClock() {
   const now = new Date();
   const time = document.getElementById("headerClockTime");
   const date = document.getElementById("headerClockDate");
   if (time) time.textContent = headerTimeFormatter.format(now).replace("24:", "00:");
-  if (date) date.textContent = headerDateFormatter.format(now);
+  if (date) {
+    date.textContent = window.innerWidth <= 390
+      ? headerShortDateFormatter.format(now)
+      : headerDateFormatter.format(now);
+  }
 }
 
 function startHeaderClock() {
@@ -2952,6 +2966,7 @@ function scheduleScannerParallax() {
   if (!parallaxFrame) parallaxFrame = requestAnimationFrame(updateScannerParallax);
 }
 window.addEventListener("scroll", scheduleScannerParallax, {passive:true});
+window.addEventListener("resize", updateHeaderClock, {passive:true});
 if (reducedMotion && reducedMotion.addEventListener) reducedMotion.addEventListener("change", scheduleScannerParallax);
 scheduleScannerParallax();
 
