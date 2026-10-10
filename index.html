@@ -921,7 +921,7 @@
     #scanFeedback.error { color:#9b2431; background:#fdebed; }
 
     /* Tema Portal Staf — scanner kekal di GitHub untuk akses kamera. */
-    :root { --portal-green:#0b5b49; --portal-dark:#123f36; --portal-mint:#dceee5; --portal-cream:#f7f4e8; --portal-yellow:#f2c84b; --portal-red:#d64545; --portal-blue:#2868b2; --songket-pattern:linear-gradient(45deg,transparent 46%,var(--motif) 47% 53%,transparent 54%),linear-gradient(-45deg,transparent 46%,var(--motif) 47% 53%,transparent 54%),linear-gradient(90deg,transparent 46%,var(--motif) 47% 53%,transparent 54%); }
+    :root { --portal-green:#0b5b49; --portal-dark:#123f36; --portal-mint:#dceee5; --portal-cream:#f7f4e8; --portal-yellow:#f2c84b; --portal-red:#d64545; --portal-blue:#2868b2; --scanner-gap:12px; --compact-header:48px; --songket-pattern:repeating-linear-gradient(45deg,transparent 0 19px,var(--motif) 19px 20px,transparent 20px 40px),repeating-linear-gradient(-45deg,transparent 0 19px,var(--motif) 19px 20px,transparent 20px 40px),radial-gradient(circle,var(--motif) 0 1.5px,transparent 2px); }
     html { background:var(--portal-cream); }
     body { --motif:rgba(35,92,57,.055); background-color:#edf4ee; background-image:var(--songket-pattern),linear-gradient(180deg,#edf5ef,#f7f4e8); background-size:80px 80px,80px 80px,40px 40px,100% 100%; color:var(--portal-dark); }
     .container { width:min(100%,860px); max-width:860px; padding:96px 18px 0; }
@@ -983,29 +983,27 @@
     .scanner-system-overlay.is-leaving { opacity:0; visibility:hidden; pointer-events:none; }
     .scanner-overlay-content { display:grid; justify-items:center; gap:10px; width:min(100%,280px); }
     .scanner-overlay-content[hidden] { display:none; }
-    .loader-scene { position:relative; width:118px; height:76px; }
-    .loader-bot { position:absolute; left:31px; bottom:0; width:56px; height:51px; border:3px solid var(--portal-green); border-radius:18px; background:#fff; box-shadow:0 8px 18px rgba(11,91,73,.14); animation:botFloat 1.55s ease-in-out infinite; }
-    .loader-bot::before { content:""; position:absolute; left:24px; top:-12px; width:3px; height:10px; background:var(--portal-green); }
-    .loader-bot::after { content:""; position:absolute; left:20px; top:-18px; width:10px; height:10px; border-radius:50%; background:var(--portal-yellow); border:2px solid var(--portal-green); }
-    .bot-eye { position:absolute; top:17px; width:7px; height:7px; border-radius:50%; background:var(--portal-green); animation:botBlink 2.8s infinite; }
-    .bot-eye.left { left:13px; } .bot-eye.right { right:13px; }
-    .bot-mouth { position:absolute; left:18px; top:31px; width:16px; height:7px; border:2px solid var(--portal-green); border-top:0; border-radius:0 0 12px 12px; }
-    .loader-bubble { position:absolute; border-radius:50%; background:rgba(242,200,75,.62); border:1px solid rgba(11,91,73,.22); animation:bubbleRise 1.8s ease-in-out infinite; }
-    .loader-bubble.b1 { width:13px; height:13px; left:7px; bottom:7px; }
-    .loader-bubble.b2 { width:9px; height:9px; right:12px; bottom:18px; animation-delay:-.6s; }
-    .loader-bubble.b3 { width:17px; height:17px; right:0; bottom:45px; animation-delay:-1.15s; }
+    /* BoatLoader asal Portal Guru. */
+    .boat-loading-scene{--boat-progress:0;position:relative;width:min(360px,92%);height:65px;margin:8px auto 4px;overflow:visible;border:0;isolation:isolate;flex-shrink:0}
+    .boat-loading-water{position:absolute;left:0;right:0;top:44px;height:10px;border-radius:50%;background:radial-gradient(ellipse,rgba(44,162,188,.26),rgba(87,194,207,.12) 60%,transparent 74%)}
+    .boat-loading-foam{position:absolute;left:8px;top:45px;width:calc(17px + (100% - 110px)*var(--boat-progress));height:7px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(255,255,255,.96) 0 20%,transparent 25%) 0 0/13px 6px,radial-gradient(ellipse at center,rgba(225,253,255,.9) 0 24%,transparent 30%) 4px 4px/19px 8px,linear-gradient(180deg,transparent,rgba(238,255,255,.8),transparent);transition:width .4s ease;animation:schoolFoamFlow 1.2s linear infinite}
+    .boat-loading-traveller{position:absolute;left:calc((100% - 110px)*var(--boat-progress));top:0;width:110px;height:60px;animation:none;transform:none;transition:left .4s ease}
+    .boat-loading-scene .boat-seascape{display:block;width:110px;height:auto;overflow:visible;filter:drop-shadow(0 2px 2px rgba(12,82,108,.13))}
+    .boat-loading-scene .boat-vessel,.boat-loading-scene .boat-wake-line,.boat-loading-scene .boat-foam{transform:none}
+    .boat-loading-scene .boat-vessel{animation:schoolBoatFloat 1.6s ease-in-out infinite;transform-origin:250px 168px}
+    .boat-loading-scene .boat-horizon,.boat-loading-scene .boat-calm-water,.boat-loading-scene .boat-seascape>ellipse{display:none}
     .loader-message { margin:0; color:#315941; font-size:13px; font-weight:700; }
     .scanner-ready-word { color:var(--portal-green); font-size:clamp(34px,10vw,54px); font-weight:950; letter-spacing:2px; text-shadow:0 4px 18px rgba(11,91,73,.2); animation:readyPop .42s ease-out both; }
     .scanner-overlay-icon { font-size:42px; line-height:1; }
     #scannerRetryButton { min-height:42px; padding:9px 18px; border:0; border-radius:999px; color:#fff; background:var(--portal-green); font:inherit; font-weight:800; cursor:pointer; }
-    @keyframes botFloat { 50% { transform:translateY(-6px); } }
-    @keyframes botBlink { 0%,45%,50%,100% { transform:scaleY(1); } 47% { transform:scaleY(.12); } }
-    @keyframes bubbleRise { 0% { opacity:0; transform:translateY(8px) scale(.7); } 35% { opacity:1; } 100% { opacity:0; transform:translateY(-24px) scale(1.08); } }
+    @keyframes schoolBoatFloat{0%,100%{transform:translateY(1px) rotate(-.45deg)}50%{transform:translateY(-4px) rotate(.55deg)}}
+    @keyframes schoolFoamFlow{from{background-position:0 0,4px 4px,0 0}to{background-position:-26px 0,-34px 4px,0 0}}
     @keyframes readyPop { from { opacity:0; transform:scale(.76); } to { opacity:1; transform:scale(1); } }
-    @media (prefers-reduced-motion:reduce) { .loader-bot,.loader-bubble,.bot-eye { animation:none!important; } }
+    @media (prefers-reduced-motion:reduce) { .boat-loading-scene * { animation:none!important;transition:none!important; } }
 
     /* Header padat: semua item dan maklumat asal dikekalkan. */
-    .container { padding-top: 50px; }
+    .container { padding:calc(var(--compact-header) + var(--scanner-gap)) var(--scanner-gap) 0; }
+    .reader-shell,.camera-controls { width:min(100%,430px); }
     .brand-header {
       min-height: 48px;
       display: flex;
@@ -1059,7 +1057,7 @@
     }
 
     @media (max-width: 600px) {
-      .container { padding-top: 48px; }
+      .container { padding:calc(var(--compact-header) + var(--scanner-gap)) var(--scanner-gap) 0; }
       .brand-header {
         min-height: 48px;
         gap: 5px;
@@ -1167,9 +1165,49 @@
         <p class="loader-message">Sila benarkan akses kamera untuk memulakan scanner.</p>
       </div>
       <div id="scannerLoading" class="scanner-overlay-content" hidden>
-        <div class="loader-scene" aria-hidden="true">
-          <span class="loader-bubble b1"></span><span class="loader-bubble b2"></span><span class="loader-bubble b3"></span>
-          <div class="loader-bot"><i class="bot-eye left"></i><i class="bot-eye right"></i><i class="bot-mouth"></i></div>
+        <div class="boat-loading-scene" aria-hidden="true">
+         <span class="boat-loading-water"></span>
+         <span class="boat-loading-foam"></span>
+         <div class="boat-loading-traveller">
+         <svg class="boat-seascape" viewBox="0 0 440 235" xmlns="http://www.w3.org/2000/svg" focusable="false">
+          <defs>
+           <linearGradient id="boatHull" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#23b7ee"/><stop offset=".48" stop-color="#087cc4"/><stop offset="1" stop-color="#064983"/></linearGradient>
+           <linearGradient id="boatRoof" x1="0" x2="1"><stop stop-color="#1487d8"/><stop offset=".6" stop-color="#0765ac"/><stop offset="1" stop-color="#102d48"/></linearGradient>
+           <linearGradient id="boatMotor" x1="0" x2="1"><stop stop-color="#182e42"/><stop offset=".48" stop-color="#637c8b"/><stop offset="1" stop-color="#20384d"/></linearGradient>
+           <linearGradient id="boatWater" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#75d4de" stop-opacity=".3"/><stop offset="1" stop-color="#1687b2" stop-opacity="0"/></linearGradient>
+          </defs>
+          <g class="boat-horizon" fill="none" stroke="#65aeb8" stroke-width="1.5" opacity=".3"><path d="M20 115Q80 103 132 115T238 115T346 115T426 115"/></g>
+          <ellipse cx="236" cy="183" rx="178" ry="31" fill="url(#boatWater)"/>
+          <g class="boat-calm-water calm-water-back" fill="none" stroke="#5dbcc9" stroke-width="2" opacity=".5"><path d="M130 164H428"/></g>
+          <g class="boat-wake" fill="none" stroke-linecap="round">
+           <path class="boat-wake-line wake-one" d="M10 171Q40 167 75 172T127 172" stroke="#fff" stroke-width="5"/>
+           <path class="boat-wake-line wake-two" d="M0 182Q35 177 65 182T116 180" stroke="#80dbe3" stroke-width="3"/>
+           <path class="boat-wake-line wake-three" d="M28 191Q56 186 89 190T133 185" stroke="#fff" stroke-width="3"/>
+           <circle class="boat-foam foam-one" cx="88" cy="169" r="3.5" fill="#fff" stroke="none"/>
+           <circle class="boat-foam foam-two" cx="66" cy="178" r="2.5" fill="#fff" stroke="none"/>
+           <circle class="boat-foam foam-three" cx="102" cy="184" r="2" fill="#b7f1ef" stroke="none"/>
+          </g>
+          <g class="boat-vessel">
+           <ellipse cx="251" cy="174" rx="148" ry="9" fill="#064861" opacity=".16"/>
+           <g class="boat-outboard"><path d="M98 133L91 154L98 175L110 176L115 149Z" fill="#243c4e"/><path d="M101 112C82 111 81 129 87 144L111 148L116 127C117 116 110 111 101 112Z" fill="url(#boatMotor)" stroke="#879ba5" stroke-width="1.5"/><path d="M94 117Q86 130 93 141" fill="none" stroke="#b5c7ce" stroke-width="2"/></g>
+           <g fill="#e3edf0" stroke="#8da7b6" stroke-width="1"><path d="M144 125H171V146H142Z"/><path d="M189 124H217V147H186Z"/><path d="M247 124H280V147H245Z"/><path d="M302 124H329V145H301Z"/></g>
+           <g stroke="#b4c9d1" stroke-width="3" fill="none" stroke-linecap="round"><path d="M125 78V143M185 76V143M251 75V144M319 73V139"/><path d="M118 141L126 83M310 138L320 79" stroke-width="1.5"/></g>
+           <path d="M114 78L274 69L333 72L336 82L117 88Z" fill="url(#boatRoof)" stroke="#255777" stroke-width="1.5"/>
+           <path d="M119 79L273 71" fill="none" stroke="#6dd2ff" stroke-width="3"/>
+           <path d="M268 71L332 74L335 81L268 83Z" fill="#1c364b"/>
+           <g stroke="#62c5f4" stroke-width="1" opacity=".7"><path d="M139 78L146 85M164 77L171 83M189 75L196 82M214 74L221 80M239 72L246 79"/></g>
+           <path d="M102 145L328 140L386 128L400 137L374 161Q351 180 302 182L132 179Q111 168 102 145Z" fill="url(#boatHull)" stroke="#065f95" stroke-width="1.5"/>
+           <path d="M108 150L326 147L390 133" fill="none" stroke="#f1f9f4" stroke-width="6" stroke-linecap="round"/>
+           <path d="M120 172L307 177Q349 174 376 158" fill="none" stroke="#c3ded7" stroke-width="6"/>
+           <path d="M122 154L307 153L364 140" fill="none" stroke="#51ceff" stroke-width="1.5" opacity=".65"/>
+           <g fill="none" stroke="#c1d2d4" stroke-width="3"><path d="M356 135L353 104L370 103L375 130"/><path d="M355 109L371 108" stroke-width="1.5"/></g>
+           <text x="155" y="164" font-family="Arial,sans-serif" font-size="8" font-weight="700" fill="#f0f5cc" letter-spacing=".4">SK PULAU SEPANGGAR</text>
+           <image href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAABaLSURBVHhe7VoHVFXH1kZsEZ+FIuX2S9PoS4wa7L1i7IkmGkv+vGJiTNFoNJrkmWKisQVjTDSxF4hGIyCCIEV6h0uX3qTDpXMper5/z7kHQUEFg6+slb3Wt2bunDlz5vtm7z1zDuj8aX/ao23Hjh39s9IytjZW1X9Sr675tK606jNWdjXYuPegblV/HFjfZrRqK84v/FdkWNgCgcaTm9OFC8qammrkqwtxW12APL4sRF65FrdZ2epaM/g+rera3y197l3nxyi4N85916g/X+ev0b2t+tzDvee3tOWU5IFZcVHR7wKNJzeujJNeC3Cvl/w4E7LTL0F+8iUozi6A/Mx8yOwXQn56PhRnFkBpvwiKcwsgo3bFWcJ5usb6Upvy3EK+j+IsK+fTvaw/Xad+MoKEjcX6U192n5Jdp1LB7uOfMY/vK6f7+eexdgJfZ/1oPmw89gz2zAE/TMS5cEegFqcEGk9uXCkncQ25oZFfWARzl2WwdF8O2a5pEK+3gfSLqRC9Nxqyr6ZC+vFEyHdNh3jDaEi3ToD08ymwuK7tK9s5FbIDsyD/ZgYUP86F/OAcvo/s66kwfXsUZN9Mg9mbIyD/diakX06B/MBMiD8eD/nuGZDRb/YM+T5qe9cGir3Utm86pDSmuf1iSLdQv70zIdlKpd1sWLq9BoNfZ+N8zFVwtdxJgcaTG1fAGV8L9KhXOiyCpfMyWJMA8s8mQ7zwWZjNtILkHzaQrB8Dw+fEEK9+HvJtE6ltFAbNsoLVry9DtGAIzOYSXnseJrMHEyES7/2xMBohgXTDOJjOfxaKTydBNM0K0leeg9l0S5gtHQazV4bCZLIFTOZYQv7heEj//iKkq0ZCsnoEzBbRePOHQPKWDYzHKSFaNRzGI8QQrR6OwZ6vw8h+NuxjXMBVc8cFGk9umryKWZEpMZz07DxeAKtrr8H8kC1kNHn5tkmQb5kI8y9nwPLQXCi+pJXePAHKL6ZD9skkyGjiyt0zodwzC4p/TYHy6EtQ/jIPyoO2sLCbA8XmSZBuHAvF19OgoBVUbBgP872zodw1E+YHZkPx+VRebNkmWt2PJkBBHif/cCJ5AY331TRqozqNxeahJC+Q7ZgCK7cVvAC/xl4Dp+HOCzQ6Zxs3buwTFhA2uCy/ZC3HcUXO4R4YdHYOrJxIgCtaEazdlsP6xuv8KotpdSVvjISS3FSxfxYkb9vAijzFnNxe9sFYfnKsXXlwNsz3kJu/ORLy7RMhoxVU0KRFLw/lScg2joOCxpCss4GSRJFvITG3TyayUyF5ZzQsj7wE2Xs03vdzIPnnKP45lhSW1tdXwMqV5kNzYvMzsJ+Fn26eA829MiM1dc3+/fsNiFZ3LbsOmCoycnllRQVXUa6GY6gbnj+xFHKnl2HlSORbg3kDrarxbGvIP57Mu77kHRsMsrWC4ug8Cgly1xnWEK14HuK3RkG+cxoJMAuiReTic635/rJ3x0C86gWIX6cQoTAQUWlK4WMy1RzStyn2ibDZvMF8GEiWDIMphYho6V8pdIaQcH+F1WWah/Or981L5rgYU06uQeytOKCRcmF1TVmsSrVboPd440ob1nglBUD0w0wYnyUXI/LWjvc/hAc92NJ+CYkwD1beK2k1KTHtnEEuPx3y9aNh/tkUmB+k0KBwYZ5g4UB9j1Om/9dUCg3qt2UyzCkxWl98BRZH5sLy8Fx+5RXk/iwBstCRkWeY/0i7ydaJvDdY/Ex9vp0Bi5/mwoL6W12ghWGe2Wpe1k6vQnqFkvap+bD5aRnSSrJRW1ZxRqD3eOMK61Y5x3thgMMsInn/4G1AIlizkCBYnl5EK0PuTK4rYzsBxbeY3F387mgotk/i64O9VpJnvMALYv71DJi9PIxWfziFCdVXPEekZ0JEyVD+PsX95vG8y0s/IxFIaDnlGDmFjOLYfFh5rIC162ttyLeGxdWl6H9mGkKyo9FYVntMoPd4YwK4xHvD8LwQ9+0M/iCsKQbNaUUGTVZCvIayNcWsjLK9hK3+xxMg+j8KB9shsDi5CCYLh1LOeAFS2j1Ey5nLW8N0zmCIqF20lHaCJUNplyEsIJCbmy0mUcm7JDSGaNUISqQkgAuRb2ce94HmbnJ6NsJyYtCorv1FoPd44/JJgCQf9LtALuhMyhOay4fi6suQXaSD0G+0N9OOIfmBkuEB2rN/XwzZcdo1HOgg47AAUns6rFxcSAcfOvwcofYzdMhxWAjJQUqU1FdKBxnpwRmQfD8Dcr7vIkjtKHF+NwNSGlNMdcW1pVA4v/wIvKIFzcno/CyE5ZIApZ0RQN2wyjnYDZZHl2Lypbcw9swqjD2lxZjTBFYK9dGnVlJdALtGfcecJTgQfqXrZ1Zi9LnVGE1tDDb024aV5wj2q/Diudfp9+t40WElRp1ejlHnVmjrDq9j5NkVGHlmOUayuj3DCoxi5clXCa9hBJUvEJrLF05pMZzqw6kc/9tKDPtlJkLSozrnAYUctyrF4SKu2kxCXEg4nSgBTXUtqssrCVWo4ksB6hZUlVXch8qycgIrm+taVLBSTW10Dyur+Pr9UJeUoeweSltQ3ILS4pL7UFJEJaFCrUZTYykC/SMwbsw5REYUob6upOMC5JIA+U5XodbphVsya0R+fxg1/OtF1xl3l0O9pp6ggaZOg7raOmgId5qa+PofMq4K+/aoYDAwCzo6pUhIqEZjfcHPAr3HGxMg1/EqCp8xRKOhFAU9+yN4ui0SgoJxV3jGk1ptbS1CQ0Ph6+uLgIAAHoGBgYiMjMTNmzexZ88eXLp0CXfvPsmTGuDmFofhw8OJeAUBhCLExVaQAEVPIoABaszMUUvQ9B2EpIFm8Nu6nV5By4UHds4SEhLg7u4OLy8vREVFCa1aS09P56+lpqYKLZ2z7OxsrF4dTITZqhPxbpwgQCFiYlhIPJEHaAWoYhBZoN5YjrKeAxA03Aahl6+gI47KVjI2NhYXLlyAvb09nJ2d4e/vzxNuInfPz8/nV/7IkSOor68X7uq4cVw57OzCYGgYR2TrBfJNWugwEQoRHa0mD8jveA7I47iVbQQQUENCNPY3RXIffXisfhPJRORRVldXh4sXL/Ju/d133/FCODk58R7AXJ8hLS0N3t7eiI+Ph4eHRxvvaN+a4OeXiHFjQ4hkiUD8Tgv5ewIU0XgsBAq6RoBm1JsqUdVbHwFSK3geOgz1Y2JWQ8lOpVLxq+zo6EhuGcMTvXz5Mr744gscP34ciYmJyMnJgYuLC8LCwoQ721pRUS7eXhdE5NIFkq1WvY0AhYiIKEdTVwvAUM28gZJkds9+cJ05B+HBIcIU21plZSXv+syY67NQ2LdvH58MU1JSsHv3bpw4cYL/7efnxyfFtlaFY8fCIRKpiFjdw4k3QxAgPJwEaHwKAjRDY2aBur5GCNE3hdPHnyCnokKYcItVV1fzxJg1NjbyK//777/zycvT05Mnz3aHiIgIvs/9dpdIJGH6dObuBQLxu20JPwghBMLCnrIAPJg3UJIs6tEf14a/CB+K89YpjSXDmpqW0wQjfv78eezcuRMVJFjruOc4oUJWUVGAzZsC0b17CpEh0o9b9dbgBShGSEjFv0EAAXXkDSxJxugZ4NLf1+JWbq5ApX1jnsGsoaGBL1usFg4OUTA3jyIS1Z0j3gxBgOCgf6MAzWigJKnuPRAeVkPhfuIkKgVaHbGEhFQsXMD29HyBeAfcvT3wApQgMKCcwi6/46/DXSEAQw15Q5O+GCnP6OPKklcRRdvco6yurgSf7whGnz5JNHFG4MFVp22OtTFi97U/BIIAAf4sB/wHBGhGgymdJulY7Sc2h8ve/ShsePDAU0+7QhyGDY2gCQtH2Af3dJ58E6wsY6Cnlyf0aX29HfAClFLy7aQA7Z4E/yCYN9yhLTOn9wA4T5+DoIBAnnpmZjaWv8aye65A6iHuTtd69rhFyVOFnV+F0u8qan+MCIIAvr7sKPwfFqAZGoa/GCNGLIHdG9tgaJRKk2zgCbZLgoFdo/38l1+iSbJKJCeHYvJU5i109G3jKa3Bdo0y+PiU0dnjKQtQS0mvboApKijeq/oYom6QnN8a2+tbRd4AU0PY9ZghEH9UTDPXb8ScOaGUyPJQXl6BjIxkFBWnQqFkIrD7HyaCVgBv73J6/e7ELtARAWoorjVGUmgMJfxpMIdWNWKGLcI3bELY2vW4JbaAhhLgw0SA2AQ/GS6gCbLJt+f2rJ2RZ6ufgvSMDFr9u3SEjkVhYREKClLpPSITxsbsJYgJ2J4IWgE8PdW422UeQIQY6by+hoi3GoaEoSMRLjJHzHl7VEB7gmkiqK67I95IgvqBonZFeLgAbNKMdI2AArz/bjCN2EirX464uDj+UJWQkESeEI9oVQyJEKu9p42QWgE8PMq6TgCNgQTxiiGIOH0G+UWFKKUzvqOTI9ILC3jyrY0XwVCMhoFtPaF9AVjSqsezz6rwyfYofPVlLA4fDqeRtLtGBnkBe41utpKSEuTmJiAyIgMSSSTdqxGEaC2AGu7uXSRAvbECcYMkUPlpX2qa7Q7h6tWrUKvV2oZWFuPmjhRTGRqNZKhsNVZbAdhkNbCxCaEjs/bv+w8aO0o/+KocH5+IqqpilJUVY9VKdngqF8ZrEeC6WxcJ0Eju7DV2EiKys4THtxg7z7OXGmYcHebZl53kTFqxygpcPPg94vRF0LBX6HYF0K784sUBlKzyaQT2at1IYMHEyub6XaSlhlLJPtM2t2v4XUGjyaG6GvPnB9JYjLwgLAngeq2LBGDunzhqPLxDQqBu542PffJiX3dYyUIiKTAISa5uiMzPQ/CLE9CoL3m4AN00mDA+DIsWRcHWNoWQTFARbvG/586NgO1cFaZOjcOc2VGYaxvD95n7UhKVoRg7xg/z5yVBqaSXpgdCwMWljAn7xwVg9ZI+Bgj6eheiaHWbP1wWFRYilq14STGuBwVCReRjD/2AW9Q3j7bFoNGTkDD4eWgohB4mgK5uGdXZe340gb35sY8d7EWouc6yPUt27JsfK1lf9iWInSPY0Zn1VRNYDmBo8QBn59KuEYChnnaAW5bPIpCI5tDK5tzORWRGOqKuOCJu7TsI3f4Z/Be8gmyKeRb3/AdV2g6rTYg87RYPE6BbN8r43er4yXfvnoxePW6gR/cYqiehR48gOgVGUT2L6iFUD6ZrsejZ04/6uUC3eyYJWEXXoqmd+ukm0DiUEPnQKoeTUxd5AAP7ClTZawDC3/8Q4ZQLwlOSEfHRdmTqGaG2tz5K9AxR098MtSYU760IP4i2SZCVWnTTLUG37gVEqoQIxaGH7i0in08EVfQ7nsQqp9+p9DuM79Ndl9XZN4NYureG/62rS2+SzBNIgCtXOilAFsetfpgADMyV041lCPH2RuTf30aZbj9o2ArTtWoBD97zINoK0By3QuzyeYGh2aWbfzOw663bWL2a0PpeYVwS4PLlzofA6tuPEIDt6bXGcsRQVi+j7M7cvE2fx+DRAjwJmj2odZtWgEuXuloAAezvBNWttrbOoOsFaA9MANqGL5bQ1ny7UwKs6YgAfwT/PgEq4WBfTDtWbsf/Za4YWJZz2RGFlNT+9wVQw821Ek0NOUcEeo+3xAZu5C23gLtFfURoNFZ2KKl1Fk9fAEqEdCbQ1a0jARKLwkPK5vn7c8MSwzkzgeb9tmMH9Ly9C9bfuG7v7ntzb5rfzX2c7yQrpBuZo7S3JTQDzFFn0rEM3xE8NQH4N0mGJjonZGDc2NO44bGlJjhgc0VE6OcICzleHeAX/PuFC6VDBeo6On7ecRNCgp2ScjNXQVNhBK6GRtDooEbTE3kx+oj7Voz46UrkmlhA3duKXnFJDNP2iXUUXSsAc/Vm4nmYNu0HnDw2Cflp/VCv1nJBtQ7uVOpAQ78ri14gIb6vdneP0/43uZdnytG87A3ajvVEvLgHDu0XITzAACHBAxEQYYjkHH34/iZC9Of0PjBFiUx9a1Q8Y4l6ffY1qH2Sj0KXCHCPNGBq6o/31q9DXLQZHc6p4Y4ObkX9hcru8PfUR0O5Lu5W6YAjIdCkg5yM5bQ9qrbxAhw7VtLP29tVVZr3HH+xKLMXli1V4uB+OT76UAzHS1J8tUOM7Z/K4RtuBPebpohwNkbsp1IkT7ZA/kA6F+ixA1LHQ+TJBaD+94iXYtyY4zh+dBrKCrrzxFPj+8LhrAmyk/rRS5MSPtcH4bu9xqgq6sULwBa5smgIfrtw3o0n32xOTpyln+/Fyupifb5ToFdPJMf0RoCnHiICe8HNSQ+/nTfG2WMifPOlGHVVz+DwKWOcsJfC+2cZolaZI1VuieJelqjrZ8GL8agdpNMC8F94tcT79EnEG6u3INBHoV1tQlxYf9gdEOPw92Z48w0pPF0HwtezP1LixAjykSH7Vl96m9ZBY2VfSop2RXZ2nIlAvcVcXdULYiIP4HbWEmSlfYPYyEN1cVH7qqJCP+Lys5ajvPA5FOb0hatTb4QFGGLVCgssmm8Oh99M4RNuDD8PE6jsTBAx2wIZUgsUUYhU9aEwoZzBBGGhwkRhXqIVYCERYuQZmBDNaCHbgjswMQnE5g/X0vzItRnxpm5wvmSGDe8rcfpnETZtNIPPDT2U5vdFbtZkRIdtqvRw/dbF22PPFX+fLVm3MydDFb4RJ0/m2AqU25qfd/QnCTHqo1lZ3PiQEE7i6cmZeHlxg/1vNi0JDvA7Gha8Lzs3cyXURUORkaQHVUQvnD1phK8pNxTm9uYnVt3YG9H+xoihSd16T4qE8eZIkVgiq78lCvpYoYQSaZOeKex0mQCtSTaDCVCOvn0TMPz5S3j/nQ9x5eIYlBb0QlG2DoL8BsL+lBn27ZJj+xYFNm8wg59Xb9RWmqDg9gIE+u9K9XKP2nb1KicWaOkcPQq9G26q3U6OnnuFpiezvDzo3fTiXvLx9jweGfptfsHt5chJHUJi9MIdSjBVhT1RTDlk3To5XMgj/CINkJxmiOxEfaR76CPtrBESD5ghbfcguGyT4911b2LdWx/gg/Vv45OP1mD/rsU4d2IChZ4FCjP7opHiNitFB2nxfbB9qwQ/HpLh2I+mFI6G2L+7PxKi9HE7cwxUkf+Aj+cJdxengldPnsQzwnSfrqWEcP09PZuWBPhedwgP+7IsLXEZyopliAnrgU0bTPDt12Js2WhOqyfFR1tlyMj4CzIphGoaeqOmsQ95S897MfwgGip0sGeXKU5TzvngXQWuO4uwdZMxbrjqISl2IDKSRyA7bTVCg/an3PT2++baFe45YVr/GfNz5QZ53yhZ6eN1xTE4cFtVSqItxaAYLo794eqoj483i3HiqBRvULI8esgYixaY4+RRM/x0UIRLv5pQoqLkS8TvEHHQOYR50jv/FMFurwHd14+Smhw56ZOQGLcWYaF2uUH+N3/28mqaHRGBnsIU/nssIIAT+XunrQ0JPO6jiljTUJAzkbYpC0SFGMPfqx+57wByfSP8ctgQ33xhiB++08ePBwdQXqEXexIhL10PtWoDRIfbICL0TXLvnU1hQb/GhAVHHQj252apVFxf4VH//Xadttfrrqq/ed84dyI0aHdIXPTm3NiIv9UkqJZx0eGLkB5vi9gIW1y/thB+nksbQ4NWq/28t6a4XTvkGR7muy8xrmF5aipnKQz3v2+0xM+E0wtJaChnTbvMcE9fbuTNm9yI6ARumLs7p7xwgTOgPrpC9z/tT/vT/rSnaDo6/w/K9oFYIRTMLgAAAABJRU5ErkJggg==" x="255" y="153" width="17" height="17"/>
+           <g class="boat-fenders"><path d="M139 142L135 161L143 164L148 145Z" fill="#cbe9ec" stroke="#789fac"/><path d="M287 140L282 160L290 163L295 143Z" fill="#cbe9ec" stroke="#789fac"/><path d="M142 134L140 145M290 133L289 143" stroke="#e7f1ef" stroke-width="1.5"/></g>
+          </g>
+          <g class="boat-calm-water calm-water-front" fill="none" stroke="#37a8b9" stroke-width="2" opacity=".55"><path d="M16 199H427"/></g>
+         </svg>
+         </div>
         </div>
         <p id="scannerLoadingMessage" class="loader-message">Bot sedang menyediakan kamera dan data murid...</p>
       </div>
@@ -1302,6 +1340,19 @@ let startupError = null;
 let readyOverlayShown = false;
 let startupPromise = null;
 let waitingForCameraPermission = true;
+let boatLoadingStartedAt = 0;
+let minimumLoadingTimer = null;
+
+function setBoatLoadingProgress(progress) {
+  const scene = document.querySelector("#scannerLoading .boat-loading-scene");
+  if (scene) scene.style.setProperty("--boat-progress", Math.max(0, Math.min(1, progress)));
+}
+
+function showBoatLoading(message) {
+  if (!boatLoadingStartedAt) boatLoadingStartedAt = performance.now();
+  setScannerSystemState("loading", message);
+  setBoatLoadingProgress(.12 + (cameraReady ? .36 : 0) + (rosterReady ? .46 : 0));
+}
 
 function setScannerSystemState(state, message) {
   const overlay = document.getElementById("scannerSystemOverlay");
@@ -1334,11 +1385,23 @@ function updateStartupReadiness() {
       : rosterReady
         ? "Data sedia. Bot sedang menyediakan kamera..."
         : "Bot sedang menyediakan kamera dan data murid...";
-    setScannerSystemState("loading", message);
+    showBoatLoading(message);
+    return;
+  }
+  const elapsed = boatLoadingStartedAt ? performance.now() - boatLoadingStartedAt : 0;
+  if (elapsed < 3000) {
+    showBoatLoading("Semua hampir sedia...");
+    if (!minimumLoadingTimer) {
+      minimumLoadingTimer = setTimeout(function() {
+        minimumLoadingTimer = null;
+        updateStartupReadiness();
+      }, Math.ceil(3000 - elapsed));
+    }
     return;
   }
   if (readyOverlayShown) return;
   readyOverlayShown = true;
+  setBoatLoadingProgress(1);
   setScannerSystemState("ready");
   setTimeout(function() {
     const overlay = document.getElementById("scannerSystemOverlay");
@@ -1363,10 +1426,13 @@ async function beginStartup() {
   cameraReady = cameraRunning;
   rosterReady = false;
   readyOverlayShown = false;
+  boatLoadingStartedAt = 0;
+  clearTimeout(minimumLoadingTimer);
+  minimumLoadingTimer = null;
   startupPromise = (async function() {
     const permission = await cameraPermissionState();
     waitingForCameraPermission = permission !== "granted";
-    if (permission === "granted") setScannerSystemState("loading", "Bot sedang menyediakan kamera dan data murid...");
+    if (permission === "granted") showBoatLoading("Bot sedang menyediakan kamera dan data murid...");
     else setScannerSystemState("waiting-permission");
     const rosterTask = preloadStudentDirectory().catch(function(error) { return {error}; });
     const cameraTask = startScanner().catch(function(error) { return {error}; });
@@ -1380,10 +1446,13 @@ async function retryStartup() {
   rosterLoadPromise = null;
   startupError = null;
   readyOverlayShown = false;
+  boatLoadingStartedAt = 0;
+  clearTimeout(minimumLoadingTimer);
+  minimumLoadingTimer = null;
   if (cameraRunning) cameraReady = true;
   else cameraReady = false;
   rosterReady = false;
-  setScannerSystemState("loading", "Bot sedang mencuba semula...");
+  showBoatLoading("Bot sedang mencuba semula...");
   await beginStartup();
 }
 
