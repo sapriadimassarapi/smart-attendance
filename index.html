@@ -1286,7 +1286,23 @@ let lastDecodedText = "";
 
 let lastDecodedAt = 0;
 const recordedTokens = new Map();
+const inFlightTokens = new Set();
+const studentDirectory = new Map();
+const DIRECTORY_CACHE_KEY = "smartAttendanceStudentDirectoryV1";
+let activeDisplayToken = "";
 let lastSuccessfulScan = null;
+
+// Muat cache dahulu supaya nama boleh muncul walaupun permintaan rangkaian
+// untuk senarai murid masih berjalan di belakang.
+try {
+  const cached = JSON.parse(localStorage.getItem(DIRECTORY_CACHE_KEY) || "null");
+  if (cached && Array.isArray(cached.students)) {
+    cached.students.forEach(student => {
+      if (student && student.id) studentDirectory.set(String(student.id).trim(), student);
+    });
+  }
+} catch (error) {}
+
 function setScanFeedback(message, kind) {
   const feedback = document.getElementById("scanFeedback");
   feedback.textContent = message || "";
@@ -1893,18 +1909,12 @@ function onScanSuccess(
   if (recorded) {
     const now = Date.now();
     if (now - recorded.lastSeenAt >= 1200) {
+      activeDisplayToken = decodedText;
       showResult({success:false,duplicate:true,nama:recorded.nama,kelas:recorded.kelas,masa:recorded.masa},decodedText);
     } else {
       recorded.lastSeenAt = now;
     }
     return;
-  }
-
-
-  if (processing) {
-
-    return;
-
   }
 
 
@@ -1927,41 +1937,32 @@ function onScanSuccess(
   soundQrRead();
   showScanEffect();
 
+  // QR sama yang masih menunggu server tidak dihantar dua kali.
+  if (inFlightTokens.has(decodedText)) return;
+  inFlightTokens.add(decodedText);
+  activeDisplayToken = decodedText;
 
-  processing =
-    true;
-
-  if (lastSuccessfulScan) {
-    setScanFeedback("Merekod kehadiran...", "pending");
+  const student = studentDirectory.get(decodedText);
+  if (student) {
+    showOptimisticSuccess(student, decodedText);
   } else {
-  document.getElementById("result").classList.remove("success", "duplicate");
-
-
-
-  document.getElementById(
-    "result"
-  ).innerHTML =
-
-    '<div class="icon">⏳</div>' +
-
-    '<div class="title">' +
-
-    'MEREKOD KEHADIRAN...' +
-
-    '</div>' +
-
-    '<div class="time">' +
-
-    'Sila tunggu sebentar' +
-
-    '</div>';
-
-
-
+    const result = document.getElementById("result");
+    result.classList.remove("success", "duplicate");
+    result.innerHTML =
+      '<div class="icon">⚡</div>' +
+      '<div class="title">QR DIKESAN</div>' +
+      '<div class="time">Mengesahkan nama murid...</div>';
+    setScanFeedback("Menyimpan rekod di belakang...", "pending");
   }
+
+  // Lepaskan decoder dengan cepat; permintaan simpan tidak lagi mengunci kamera.
+  processing = true;
+  setTimeout(function() { processing = false; }, 180);
+
   // Hantar QR kepada Apps Script
   sendToGoogleSheets(
-    decodedText
+    decodedText,
+    !!student
   );
 
 }
@@ -1974,7 +1975,8 @@ function onScanSuccess(
 // =================================================
 
 function sendToGoogleSheets(
-  qrValue
+  qrValue,
+  optimisticShown
 ) {
 
 
@@ -2015,8 +2017,20 @@ function sendToGoogleSheets(
           true;
 
 
+        inFlightTokens.delete(qrValue);
+        if (qrValue !== activeDisplayToken) {
+          cleanupJsonp(callbackName, script);
+          return;
+        }
         soundError();
-        if (lastSuccessfulScan) setScanFeedback("Sambungan gagal. Sila cuba semula.", "error");
+        if (optimisticShown) {
+          const result = document.getElementById("result");
+          result.classList.remove("success", "duplicate");
+          result.innerHTML = '<div class="icon">❌</div>' +
+            '<div class="title">REKOD BELUM DISAHKAN</div>' +
+            '<div class="time">Sambungan gagal. Sila imbas semula.</div>';
+          setScanFeedback("Data tidak berjaya disimpan. Sila imbas semula.", "error");
+        } else if (lastSuccessfulScan) setScanFeedback("Sambungan gagal. Sila cuba semula.", "error");
         else {
 
 
@@ -2087,7 +2101,8 @@ function sendToGoogleSheets(
       try {
 
 
-        showResult(data, qrValue);
+        inFlightTokens.delete(qrValue);
+        showResult(data, qrValue, { optimisticShown });
 
 
       }
@@ -2148,8 +2163,20 @@ function sendToGoogleSheets(
       );
 
 
+      inFlightTokens.delete(qrValue);
+      if (qrValue !== activeDisplayToken) {
+        cleanupJsonp(callbackName, script);
+        return;
+      }
       soundError();
-      if (lastSuccessfulScan) setScanFeedback("Gagal hubungi sistem. Semak sambungan internet.", "error");
+      if (optimisticShown) {
+        const result = document.getElementById("result");
+        result.classList.remove("success", "duplicate");
+        result.innerHTML = '<div class="icon">❌</div>' +
+          '<div class="title">REKOD BELUM DISAHKAN</div>' +
+          '<div class="time">Gagal hubungi sistem. Sila imbas semula.</div>';
+        setScanFeedback("Data tidak berjaya disimpan. Sila imbas semula.", "error");
+      } else if (lastSuccessfulScan) setScanFeedback("Gagal hubungi sistem. Semak sambungan internet.", "error");
       else {
 
 
@@ -2231,37 +2258,62 @@ function cleanupJsonp(
 // PAPARKAN KEPUTUSAN
 // =================================================
 
-function showResult(data, qrValue) {
+function showOptimisticSuccess(student, qrValue) {
   const result = document.getElementById("result");
+  const now = new Date().toLocaleTimeString("ms-MY", {
+    hour: "2-digit", minute: "2-digit", second: "2-digit"
+  });
+  lastSuccessfulScan = {nama:student.nama, kelas:student.kelas, masa:now};
+  result.classList.remove("duplicate");
+  result.classList.add("success");
+  result.innerHTML =
+    '<div class="icon">✅</div>' +
+    '<div class="title">KEHADIRAN DIREKODKAN</div>' +
+    '<div class="name">' + escapeHtml(student.nama || "Pelajar") + '</div>' +
+    '<div class="class">' + escapeHtml(student.kelas || "") + '</div>' +
+    '<div class="status">HADIR</div>' +
+    '<div class="time">' + escapeHtml(now) + '</div>';
+  setScanFeedback("Sedang menyimpan data di belakang...", "pending");
+  soundSuccess();
+  if (navigator.vibrate) navigator.vibrate(150);
+}
+
+function showResult(data, qrValue, options = {}) {
+  const result = document.getElementById("result");
+  const isCurrent = !qrValue || qrValue === activeDisplayToken;
 
   if (data && (data.success || data.duplicate)) {
+    if (qrValue && data.nama) {
+      studentDirectory.set(String(qrValue).trim(), {
+        id:String(qrValue).trim(), nama:data.nama, kelas:data.kelas || ""
+      });
+      saveStudentDirectoryCache();
+    }
     if (qrValue && !data.syncWarning) recordedTokens.set(String(qrValue).trim(), {
       nama:data.nama,kelas:data.kelas,masa:data.masa,lastSeenAt:Date.now()
     });
+    if (!isCurrent) return;
     if (data.duplicate) {
       soundDuplicate();
-      if (lastSuccessfulScan) {
-        setScanFeedback((data.nama || "Murid") + " sudah direkod hari ini" + (data.masa ? " pada " + data.masa : "") + ".", "warning");
-      } else {
-        result.classList.remove("success");
-        result.classList.add("duplicate");
-        result.innerHTML =
-          '<div class="icon">⚠️</div>' +
-          '<div class="title">KEHADIRAN SUDAH DIREKOD</div>' +
-          '<div class="name">' + escapeHtml(data.nama || "Pelajar") + '</div>' +
-          '<div class="class">' + escapeHtml(data.kelas || "") + '</div>' +
-          '<div class="status">' + escapeHtml(data.status || "SUDAH DIREKOD") + '</div>' +
-          '<div class="time">' + escapeHtml(data.masa || "") + '</div>';
-      }
+      setScanFeedback((data.nama || "Murid") + " sudah direkod hari ini" + (data.masa ? " pada " + data.masa : "") + ".", "warning");
+      result.classList.remove("success");
+      result.classList.add("duplicate");
+      result.innerHTML =
+        '<div class="icon">⚠️</div>' +
+        '<div class="title">KEHADIRAN SUDAH DIREKOD</div>' +
+        '<div class="name">' + escapeHtml(data.nama || "Pelajar") + '</div>' +
+        '<div class="class">' + escapeHtml(data.kelas || "") + '</div>' +
+        '<div class="status">' + escapeHtml(data.status || "SUDAH DIREKOD") + '</div>' +
+        '<div class="time">' + escapeHtml(data.masa || "") + '</div>';
     } else {
-      soundSuccess();
+      if (!options.optimisticShown) soundSuccess();
       lastSuccessfulScan = {nama:data.nama,kelas:data.kelas,masa:data.masa};
       setScanFeedback("", "");
       result.classList.remove("duplicate");
       result.classList.add("success");
       result.innerHTML =
         '<div class="icon">✅</div>' +
-        '<div class="title">KEHADIRAN DIREKOD</div>' +
+        '<div class="title">KEHADIRAN DIREKODKAN</div>' +
         '<div class="name">' + escapeHtml(data.nama || "Pelajar") + '</div>' +
         '<div class="class">' + escapeHtml(data.kelas || "") + '</div>' +
         '<div class="status">' + escapeHtml(data.status || "HADIR") + '</div>' +
@@ -2272,11 +2324,12 @@ function showResult(data, qrValue) {
       setScanFeedback(notice, "warning");
       result.insertAdjacentHTML("beforeend", '<div class="time">' + escapeHtml(notice) + '</div>');
     }
-    if (navigator.vibrate) navigator.vibrate(data.duplicate ? [100, 80, 100] : 150);
+    if (navigator.vibrate && !options.optimisticShown) navigator.vibrate(data.duplicate ? [100, 80, 100] : 150);
     prepareNextScan();
     return;
   }
 
+  if (!isCurrent) return;
   soundError();
   const message = data && data.message ? data.message : "Cuba lagi.";
   if (lastSuccessfulScan) {
@@ -2463,10 +2516,47 @@ function scannerApi(action, values = {}) {
   });
 }
 
+function saveStudentDirectoryCache() {
+  try {
+    localStorage.setItem(DIRECTORY_CACHE_KEY, JSON.stringify({
+      savedAt: Date.now(),
+      students: Array.from(studentDirectory.values())
+    }));
+  } catch (error) {}
+}
+
+// Ambil semua nama seawal mungkin. Pada lawatan seterusnya, cache di atas
+// membolehkan nama dipaparkan serta-merta sebelum rangkaian selesai.
+async function preloadStudentDirectory() {
+  if (!validLaunch) return;
+  try {
+    const classData = await scannerApi("classes");
+    if (!classData.success || !Array.isArray(classData.classes)) return;
+    const responses = await Promise.allSettled(classData.classes.map(async kelas => {
+      const data = await scannerApi("students", {kelas:kelas.kelasId});
+      if (!data.success) return;
+      (data.students || []).forEach(student => {
+        const id = String(student.muridId || student.id || "").trim();
+        if (!id) return;
+        studentDirectory.set(id, {
+          id,
+          nama: student.nama || "Pelajar",
+          kelas: student.kelas || kelas.nama || kelas.kelasId || ""
+        });
+      });
+    }));
+    if (responses.some(item => item.status === "fulfilled")) saveStudentDirectoryCache();
+  } catch (error) {
+    // Cache lama masih boleh digunakan; kegagalan pramuat tidak menyekat kamera.
+    console.warn("Direktori murid belum dapat dikemas kini:", error);
+  }
+}
+
 
 window.addEventListener("pageshow", function() {
   if (validLaunch && !cameraRunning) startScanner();
   if (validLaunch) loadManualRoster();
+  if (validLaunch) preloadStudentDirectory();
 });
 window.addEventListener("pagehide", stopScanner);
 
