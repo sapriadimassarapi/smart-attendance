@@ -977,9 +977,12 @@
       overflow: hidden;
     }
 
-    /* Loading bot + buih untuk pramuat senarai kelas dan murid. */
-    .manual-loader { min-height:132px; display:grid; place-items:center; gap:8px; padding:8px; }
-    .manual-loader[hidden] { display:none; }
+    /* Overlay persediaan kamera + data di dalam ruang scanner. */
+    .scanner-system-overlay { position:absolute; inset:0; z-index:40; display:grid; place-items:center; padding:20px; color:var(--portal-dark); background:rgba(235,244,237,.96); backdrop-filter:blur(3px); transition:opacity .28s ease,visibility .28s ease; }
+    .scanner-system-overlay[hidden] { display:none; }
+    .scanner-system-overlay.is-leaving { opacity:0; visibility:hidden; pointer-events:none; }
+    .scanner-overlay-content { display:grid; justify-items:center; gap:10px; width:min(100%,280px); }
+    .scanner-overlay-content[hidden] { display:none; }
     .loader-scene { position:relative; width:118px; height:76px; }
     .loader-bot { position:absolute; left:31px; bottom:0; width:56px; height:51px; border:3px solid var(--portal-green); border-radius:18px; background:#fff; box-shadow:0 8px 18px rgba(11,91,73,.14); animation:botFloat 1.55s ease-in-out infinite; }
     .loader-bot::before { content:""; position:absolute; left:24px; top:-12px; width:3px; height:10px; background:var(--portal-green); }
@@ -992,11 +995,13 @@
     .loader-bubble.b2 { width:9px; height:9px; right:12px; bottom:18px; animation-delay:-.6s; }
     .loader-bubble.b3 { width:17px; height:17px; right:0; bottom:45px; animation-delay:-1.15s; }
     .loader-message { margin:0; color:#315941; font-size:13px; font-weight:700; }
-    #manualReady { color:var(--portal-green); font-size:18px; font-weight:900; letter-spacing:1.5px; }
-    #manualRetry { min-height:40px; padding:8px 16px; }
+    .scanner-ready-word { color:var(--portal-green); font-size:clamp(34px,10vw,54px); font-weight:950; letter-spacing:2px; text-shadow:0 4px 18px rgba(11,91,73,.2); animation:readyPop .42s ease-out both; }
+    .scanner-overlay-icon { font-size:42px; line-height:1; }
+    #scannerRetryButton { min-height:42px; padding:9px 18px; border:0; border-radius:999px; color:#fff; background:var(--portal-green); font:inherit; font-weight:800; cursor:pointer; }
     @keyframes botFloat { 50% { transform:translateY(-6px); } }
     @keyframes botBlink { 0%,45%,50%,100% { transform:scaleY(1); } 47% { transform:scaleY(.12); } }
     @keyframes bubbleRise { 0% { opacity:0; transform:translateY(8px) scale(.7); } 35% { opacity:1; } 100% { opacity:0; transform:translateY(-24px) scale(1.08); } }
+    @keyframes readyPop { from { opacity:0; transform:scale(.76); } to { opacity:1; transform:scale(1); } }
     @media (prefers-reduced-motion:reduce) { .loader-bot,.loader-bubble,.bot-eye { animation:none!important; } }
 
     /* Header padat: semua item dan maklumat asal dikekalkan. */
@@ -1156,6 +1161,28 @@
 
     <div class="scan-success-flash" aria-hidden="true">✓</div>
 
+    <div id="scannerSystemOverlay" class="scanner-system-overlay" data-state="waiting-permission" role="status" aria-live="polite">
+      <div id="scannerWaiting" class="scanner-overlay-content">
+        <div class="scanner-overlay-icon" aria-hidden="true">📷</div>
+        <p class="loader-message">Sila benarkan akses kamera untuk memulakan scanner.</p>
+      </div>
+      <div id="scannerLoading" class="scanner-overlay-content" hidden>
+        <div class="loader-scene" aria-hidden="true">
+          <span class="loader-bubble b1"></span><span class="loader-bubble b2"></span><span class="loader-bubble b3"></span>
+          <div class="loader-bot"><i class="bot-eye left"></i><i class="bot-eye right"></i><i class="bot-mouth"></i></div>
+        </div>
+        <p id="scannerLoadingMessage" class="loader-message">Bot sedang menyediakan kamera dan data murid...</p>
+      </div>
+      <div id="scannerReadyState" class="scanner-overlay-content" hidden>
+        <div class="scanner-ready-word">READY!</div>
+      </div>
+      <div id="scannerErrorState" class="scanner-overlay-content" hidden>
+        <div class="scanner-overlay-icon" aria-hidden="true">⚠️</div>
+        <p id="scannerErrorMessage" class="loader-message">Sistem tidak dapat disediakan.</p>
+        <button id="scannerRetryButton" type="button">Cuba semula</button>
+      </div>
+    </div>
+
   </div>
 
   <div class="camera-controls">
@@ -1191,20 +1218,11 @@
 
   <section id="manualPanel" class="manual-panel" aria-label="Rekod kehadiran tanpa QR">
     <h2>Rekod kehadiran tanpa QR</h2>
-    <div id="manualLoader" class="manual-loader" role="status" aria-live="polite">
-      <div class="loader-scene" aria-hidden="true">
-        <span class="loader-bubble b1"></span><span class="loader-bubble b2"></span><span class="loader-bubble b3"></span>
-        <div class="loader-bot"><i class="bot-eye left"></i><i class="bot-eye right"></i><i class="bot-mouth"></i></div>
-      </div>
-      <p class="loader-message">Bot sedang menyediakan data kelas dan murid...</p>
-    </div>
-    <div id="manualReady" hidden>READY!</div>
     <label for="manualClass">Kelas</label>
     <select id="manualClass" disabled><option value="">Memuatkan kelas...</option></select>
     <label for="manualStudent">Nama murid</label>
     <select id="manualStudent" disabled><option value="">Pilih nama</option></select>
     <button id="manualSubmit" type="button" disabled>Rekod kehadiran</button>
-    <button id="manualRetry" type="button" hidden>Cuba semula</button>
     <p id="manualStatus" role="status">Pilih kelas, kemudian pilih nama murid.</p>
   </section>
 
@@ -1278,6 +1296,96 @@ let cameraRunning = false;
 let cameraStarting = false;
 let currentFacingMode = "environment";
 let scanEffectTimer = null;
+let cameraReady = false;
+let rosterReady = false;
+let startupError = null;
+let readyOverlayShown = false;
+let startupPromise = null;
+let waitingForCameraPermission = true;
+
+function setScannerSystemState(state, message) {
+  const overlay = document.getElementById("scannerSystemOverlay");
+  const panels = {
+    "waiting-permission": document.getElementById("scannerWaiting"),
+    loading: document.getElementById("scannerLoading"),
+    ready: document.getElementById("scannerReadyState"),
+    error: document.getElementById("scannerErrorState")
+  };
+  overlay.hidden = false;
+  overlay.classList.remove("is-leaving");
+  overlay.dataset.state = state;
+  Object.entries(panels).forEach(([name, panel]) => panel.hidden = name !== state);
+  if (state === "loading" && message) document.getElementById("scannerLoadingMessage").textContent = message;
+  if (state === "error" && message) document.getElementById("scannerErrorMessage").textContent = message;
+}
+
+function updateStartupReadiness() {
+  if (startupError) {
+    setScannerSystemState("error", startupError);
+    return;
+  }
+  if (waitingForCameraPermission && !cameraReady) {
+    setScannerSystemState("waiting-permission");
+    return;
+  }
+  if (!cameraReady || !rosterReady) {
+    const message = cameraReady
+      ? "Kamera sedia. Bot sedang menyediakan data kelas dan murid..."
+      : rosterReady
+        ? "Data sedia. Bot sedang menyediakan kamera..."
+        : "Bot sedang menyediakan kamera dan data murid...";
+    setScannerSystemState("loading", message);
+    return;
+  }
+  if (readyOverlayShown) return;
+  readyOverlayShown = true;
+  setScannerSystemState("ready");
+  setTimeout(function() {
+    const overlay = document.getElementById("scannerSystemOverlay");
+    overlay.classList.add("is-leaving");
+    setTimeout(function() { overlay.hidden = true; }, 300);
+  }, 1250);
+}
+
+async function cameraPermissionState() {
+  try {
+    if (!navigator.permissions || !navigator.permissions.query) return "unknown";
+    const result = await navigator.permissions.query({name:"camera"});
+    return result.state;
+  } catch (error) {
+    return "unknown";
+  }
+}
+
+async function beginStartup() {
+  if (startupPromise) return startupPromise;
+  startupError = null;
+  cameraReady = cameraRunning;
+  rosterReady = false;
+  readyOverlayShown = false;
+  startupPromise = (async function() {
+    const permission = await cameraPermissionState();
+    waitingForCameraPermission = permission !== "granted";
+    if (permission === "granted") setScannerSystemState("loading", "Bot sedang menyediakan kamera dan data murid...");
+    else setScannerSystemState("waiting-permission");
+    const rosterTask = preloadStudentDirectory().catch(function(error) { return {error}; });
+    const cameraTask = startScanner().catch(function(error) { return {error}; });
+    await Promise.allSettled([rosterTask, cameraTask]);
+  })();
+  return startupPromise;
+}
+
+async function retryStartup() {
+  startupPromise = null;
+  rosterLoadPromise = null;
+  startupError = null;
+  readyOverlayShown = false;
+  if (cameraRunning) cameraReady = true;
+  else cameraReady = false;
+  rosterReady = false;
+  setScannerSystemState("loading", "Bot sedang mencuba semula...");
+  await beginStartup();
+}
 
 function updateCameraButton() {
   const button = document.getElementById("switchCameraButton");
@@ -1302,6 +1410,9 @@ function showScanEffect() {
 
 async function switchCamera() {
   if (cameraStarting || !validLaunch) return;
+  cameraReady = false;
+  readyOverlayShown = false;
+  setScannerSystemState("loading", "Bot sedang menukar kamera...");
   cameraStarting = true;
   updateCameraButton();
   currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
@@ -1315,6 +1426,7 @@ async function stopScanner() {
   const current = scanner;
   scanner = null;
   cameraRunning = false;
+  cameraReady = false;
   document.getElementById("readerShell").classList.remove("scanning");
   updateCameraButton();
   if (!current) return;
@@ -1837,6 +1949,10 @@ async function startScanner() {
     cameraRunning =
       true;
 
+    waitingForCameraPermission = false;
+    cameraReady = true;
+    updateStartupReadiness();
+
 
     document.getElementById(
       "readerShell"
@@ -1867,6 +1983,13 @@ async function startScanner() {
 
     cameraRunning =
       false;
+
+    waitingForCameraPermission = false;
+    cameraReady = false;
+    startupError = /NotAllowedError|Permission denied|denied/i.test(String(error && (error.name + " " + error.message)))
+      ? "Akses kamera ditolak. Benarkan kamera melalui tetapan pelayar, kemudian tekan Cuba semula."
+      : "Kamera tidak dapat dibuka. Semak kamera dan tekan Cuba semula.";
+    updateStartupReadiness();
 
     updateCameraButton();
 
@@ -2493,10 +2616,7 @@ document.getElementById("manualClass").addEventListener("change", function() {
       : "Tiada murid dalam kelas ini.";
 });
 
-document.getElementById("manualRetry").addEventListener("click", function() {
-  rosterLoadPromise = null;
-  preloadStudentDirectory(true);
-});
+document.getElementById("scannerRetryButton").addEventListener("click", retryStartup);
 document.getElementById("manualStudent").addEventListener("change", function() {
   document.getElementById("manualSubmit").disabled = !this.value;
 });
@@ -2553,15 +2673,10 @@ async function preloadStudentDirectory(force = false) {
   if (!validLaunch) return;
   if (rosterLoadPromise && !force) return rosterLoadPromise;
 
-  const loader = document.getElementById("manualLoader");
-  const ready = document.getElementById("manualReady");
-  const retry = document.getElementById("manualRetry");
   const classSelect = document.getElementById("manualClass");
   const studentSelect = document.getElementById("manualStudent");
   const status = document.getElementById("manualStatus");
-  loader.hidden = false;
-  ready.hidden = true;
-  retry.hidden = true;
+  rosterReady = false;
   classSelect.disabled = true;
   studentSelect.disabled = true;
   status.textContent = "Memuatkan semua kelas dan nama murid...";
@@ -2594,15 +2709,15 @@ async function preloadStudentDirectory(force = false) {
       saveStudentDirectoryCache();
       classSelect.replaceChildren(new Option("Pilih kelas", ""), ...classData.classes.map(k => new Option(k.nama, k.kelasId)));
       classSelect.disabled = false;
-      loader.hidden = true;
-      ready.hidden = false;
+      rosterReady = true;
       status.textContent = "Semua data tersedia. Pilih kelas dan nama murid.";
+      updateStartupReadiness();
     } catch (error) {
-      loader.hidden = true;
-      ready.hidden = true;
-      retry.hidden = false;
+      rosterReady = false;
       classSelect.replaceChildren(new Option("Data belum tersedia", ""));
       status.textContent = (error.message || "Data tidak dapat dimuatkan.") + " Tekan Cuba semula.";
+      startupError = "Data kelas dan murid tidak dapat dimuatkan. Tekan Cuba semula.";
+      updateStartupReadiness();
       console.warn("Direktori murid belum dapat dikemas kini:", error);
       throw error;
     }
@@ -2613,8 +2728,7 @@ async function preloadStudentDirectory(force = false) {
 
 
 window.addEventListener("pageshow", function() {
-  if (validLaunch && !cameraRunning) startScanner();
-  if (validLaunch) preloadStudentDirectory().catch(function() {});
+  if (validLaunch) beginStartup();
 });
 window.addEventListener("pagehide", stopScanner);
 
