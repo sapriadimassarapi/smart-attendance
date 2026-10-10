@@ -55,17 +55,6 @@
         Helvetica,
         sans-serif;
 
-      background-color: #f4f7fb;
-
-      background-image:
-        radial-gradient(
-          circle,
-          rgba(23,53,107,0.08) 1.4px,
-          transparent 1.5px
-        );
-
-      background-size: 22px 22px;
-
       color: #17213c;
 
       text-align: center;
@@ -95,56 +84,6 @@
       display: flex;
 
       flex-direction: column;
-
-    }
-
-
-    .brand-header {
-
-      width: 100%;
-
-      display: grid;
-
-      grid-template-columns: 62px 1fr 62px;
-
-      align-items: center;
-
-      gap: 7px;
-
-      margin-bottom: 7px;
-
-    }
-
-
-    .brand-logo {
-
-      width: 62px;
-
-      height: 62px;
-
-      object-fit: contain;
-
-      display: block;
-
-      filter:
-        drop-shadow(
-          0 2px 3px
-          rgba(0,0,0,0.12)
-        );
-
-    }
-
-
-    .brand-logo-right {
-
-      justify-self: end;
-
-    }
-
-
-    .brand-title {
-
-      min-width: 0;
 
     }
 
@@ -740,19 +679,6 @@
 
     @media (max-height: 720px) {
 
-      .brand-header {
-        grid-template-columns: 48px 1fr 48px;
-        gap: 5px;
-        margin-bottom: 5px;
-      }
-
-
-      .brand-logo {
-        width: 48px;
-        height: 48px;
-      }
-
-
       h1 {
         font-size: 19px;
       }
@@ -808,7 +734,6 @@
     #startButton[hidden] { display: none; }
     #loginPanel[hidden] { display: none; }
     #manualPanel[hidden] { display: none; }
-    .portal-home[hidden] { display: none; }
 
     #loginPanel {
       background: #fff;
@@ -921,19 +846,8 @@
     #scanFeedback.error { color:#9b2431; background:#fdebed; }
 
     /* Tema Portal Staf — scanner kekal di GitHub untuk akses kamera. */
-    :root { --portal-green:#0b5b49; --portal-dark:#123f36; --portal-mint:#dceee5; --portal-cream:#f7f4e8; --portal-yellow:#f2c84b; --portal-red:#d64545; --portal-blue:#2868b2; --header-height:78px; --scanner-gap:14px; --songket-shift:0px; --content-parallax:0px; --songket-pattern:repeating-linear-gradient(45deg,transparent 0 19px,var(--motif) 19px 20px,transparent 20px 40px),repeating-linear-gradient(-45deg,transparent 0 19px,var(--motif) 19px 20px,transparent 20px 40px),radial-gradient(circle at 20px 20px,var(--songket-gold) 0 1.2px,transparent 1.5px),radial-gradient(circle,var(--motif) 0 1.5px,transparent 2px); --songket-sizes:80px 80px,80px 80px,40px 40px,40px 40px; }
+    :root { --portal-green:#0b5b49; --portal-dark:#123f36; --portal-mint:#dceee5; --portal-cream:#f7f4e8; --portal-yellow:#f2c84b; --portal-red:#d64545; --portal-blue:#2868b2; --header-height:78px; --scanner-gap:14px; --songket-shift:0px; --songket-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Cg fill='none' stroke-linejoin='round'%3E%3Cpath d='M48 4 92 48 48 92 4 48Z' stroke='%23305845' stroke-width='1.6' opacity='.62'/%3E%3Cpath d='M48 16 80 48 48 80 16 48Z' stroke='%235f8d70' stroke-width='1.2' opacity='.72'/%3E%3Cpath d='M0 0 48 48 0 96M96 0 48 48 96 96' stroke='%2317462f' stroke-width='1' opacity='.34'/%3E%3Cpath d='M0 24 24 48 0 72M96 24 72 48 96 72M24 0 48 24 72 0M24 96 48 72 72 96' stroke='%235f8d70' stroke-width='1' opacity='.48'/%3E%3C/g%3E%3Cg fill='%23d5ad45' opacity='.9'%3E%3Cpath d='M48 31 57 48 48 65 39 48Z'/%3E%3Cpath d='M48 6 54 18 48 15 42 18Z'/%3E%3Cpath d='M48 90 42 78 48 81 54 78Z'/%3E%3Cpath d='M6 48 18 42 15 48 18 54Z'/%3E%3Cpath d='M90 48 78 54 81 48 78 42Z'/%3E%3C/g%3E%3Cpath d='M48 39 53 48 48 57 43 48Z' fill='%23f1f6f1' opacity='.92'/%3E%3Ccircle cx='48' cy='48' r='2.2' fill='%2317462f'/%3E%3Cg fill='%23e2c36a' opacity='.68'%3E%3Ccircle cx='24' cy='24' r='1.5'/%3E%3Ccircle cx='72' cy='24' r='1.5'/%3E%3Ccircle cx='24' cy='72' r='1.5'/%3E%3Ccircle cx='72' cy='72' r='1.5'/%3E%3C/g%3E%3C/svg%3E"); }
     html { background:var(--portal-cream); }
-    body { --motif:rgba(35,92,57,.055); --songket-gold:rgba(184,142,45,.075); background-color:#edf4ee; background-image:var(--songket-pattern),linear-gradient(180deg,#edf5ef,#f7f4e8); background-size:var(--songket-sizes),100% 100%; color:var(--portal-dark); }
-    .container { width:min(100%,860px); max-width:860px; padding:96px 18px 0; }
-    .brand-header { --motif:rgba(35,92,57,.095); --songket-gold:rgba(175,127,24,.13); position:fixed; z-index:50; inset:0 0 auto; min-height:64px; margin:0; grid-template-columns:52px 48px 48px minmax(0,1fr); gap:8px; padding:6px max(14px,calc((100vw - 860px)/2)); background-color:#d2e1d3; background-image:var(--songket-pattern); background-size:var(--songket-sizes); border:0; box-shadow:0 7px 22px rgba(27,61,47,.1); }
-    .brand-logo { height:58px; width:58px; object-fit:contain; }
-    .brand-logo-right { order:3; }
-    .brand-title { order:4; text-align:left; }
-    .brand-title h1 { color:#17462f; font-size:17px; font-weight:850; letter-spacing:.3px; }
-    .brand-title .subtitle { color:#315941; font-size:10px; font-weight:500; }
-    .portal-home { display:grid; place-items:center; width:48px; height:48px; align-self:center; color:#fff; background:var(--portal-green); border-radius:15px; text-decoration:none; box-shadow:0 8px 20px rgba(11,91,73,.24); transition:transform .2s,box-shadow .2s; }
-    .portal-home:hover,.portal-home:focus-visible { transform:translateY(-2px) rotate(-4deg); box-shadow:0 11px 24px rgba(11,91,73,.32); }
-    .portal-home svg { width:25px; height:25px; }
     .header-colour-runner { position:absolute; z-index:5; left:0; right:0; bottom:0; height:3px; overflow:hidden; background:rgba(255,255,255,.42); }
     .header-colour-runner i { position:absolute; bottom:0; left:-16%; height:3px; width:clamp(24px,7vw,86px); border-radius:9px; animation:colourRun 7.1s linear infinite; }
     .header-colour-runner i:nth-child(1){background:#159447;animation-duration:6.2s}.header-colour-runner i:nth-child(2){background:#dc2f3f;animation-duration:8.7s;animation-delay:-4.3s}.header-colour-runner i:nth-child(3){background:#155acb;animation-duration:7.4s;animation-delay:-1.8s}.header-colour-runner i:nth-child(4){background:#f2c21d;animation-duration:9.3s;animation-delay:-6.7s}.header-colour-runner i:nth-child(5){background:#fff;box-shadow:0 0 5px rgba(255,255,255,.9);animation-duration:5.8s;animation-delay:-2.6s}
@@ -947,15 +861,15 @@
     #readerShell { background:var(--portal-dark); }
     .scan-corner { border-color:var(--portal-yellow)!important; }
     #startButton,#manualSubmit { background:linear-gradient(135deg,var(--portal-green),#16816a); }
-    .scan-info { --motif:rgba(35,92,57,.065); --songket-gold:rgba(184,142,45,.06); margin-top:22px; padding:22px; background-color:#e5f0e8; background-image:var(--songket-pattern); background-size:var(--songket-sizes); }
+    .scan-info { margin-top:22px; padding:22px; }
     .scan-info-title,.manual-panel h2,#loginPanel h2 { color:var(--portal-green); }
     .scan-tips { gap:10px; }
     .scan-tip { min-height:62px; border:1px solid rgba(11,91,73,.13); border-radius:14px; background:rgba(255,255,255,.72); color:#315941; }
     .scan-tip-icon { color:var(--portal-green); }
     .privacy-note { border-radius:13px; background:#d5e8dc; color:#315941; }
-    .portal-footer { --motif:rgba(236,211,139,.14); --songket-gold:rgba(244,210,112,.17); width:100vw; max-width:none; margin:32px calc(50% - 50vw) 0; padding:22px max(18px,calc((100vw - 860px)/2)); text-align:center; color:#f4f7ee; border:0; background-color:#305845; background-image:var(--songket-pattern); background-size:var(--songket-sizes); font-size:12px; font-weight:500; line-height:1.55; }
+    .portal-footer { width:100vw; max-width:none; margin:32px calc(50% - 50vw) 0; padding:22px max(18px,calc((100vw - 860px)/2)); text-align:center; color:#f4f7ee; border:0; background-color:#305845; font-size:12px; font-weight:500; line-height:1.55; }
     .portal-footer strong { display:block; color:#fff; margin-bottom:8px; }
-    @media (max-width:600px) { .container { padding:82px 10px 0; } .brand-header { min-height:64px; grid-template-columns:46px 42px 42px minmax(0,1fr); gap:5px; padding:5px 8px; } .brand-logo { width:42px; height:50px; } .portal-home { width:44px; height:44px; border-radius:13px; } .brand-title h1 { font-size:15px; } .brand-title .subtitle { font-size:9px; } .scanner-heading { padding:19px 18px; border-radius:17px; } .scanner-heading p { font-size:12px; } .scan-info { padding:17px 13px; } }
+    @media (max-width:600px) { .scanner-heading { padding:19px 18px; border-radius:17px; } .scanner-heading p { font-size:12px; } .scan-info { padding:17px 13px; } }
     @media (prefers-reduced-motion:reduce) { .header-colour-runner i { animation:none!important; } }
 
     /* Kotak keputusan kekal sama tinggi untuk semua keadaan. */
@@ -1003,41 +917,43 @@
 
     /* Susun atur akhir berdasarkan tema songket sebenar Portal Guru. */
     body {
-      --motif:rgba(28,87,56,.085);
-      --songket-gold:rgba(184,142,45,.08);
       background-color:#f1f6f1;
-      background-image:var(--songket-pattern),linear-gradient(180deg,#edf3db,#cfe7da);
-      background-size:var(--songket-sizes),100% 100%;
-      background-position:0 var(--songket-shift),0 var(--songket-shift),0 var(--songket-shift),0 var(--songket-shift),center top;
+      background-image:linear-gradient(rgba(241,246,241,.72),rgba(225,239,229,.72)),var(--songket-image);
+      background-repeat:no-repeat,repeat;
+      background-size:100% 100%,96px 96px;
+      background-position:center top,center var(--songket-shift);
     }
-    .container { padding:calc(var(--header-height) + var(--scanner-gap)) var(--scanner-gap) 0; }
+    .container { width:min(100%,860px);max-width:860px;margin:auto;padding:calc(var(--header-height) + var(--scanner-gap)) var(--scanner-gap) 0; }
     .reader-shell,.camera-controls { width:min(100%,430px); }
     .brand-header {
-      --motif:rgba(35,92,57,.15);
-      --songket-gold:rgba(177,126,20,.16);
+      position:fixed;
+      z-index:50;
+      inset:0 0 auto;
+      width:100%;
+      margin:0;
       height:var(--header-height);
       min-height:var(--header-height);
       max-height:var(--header-height);
       display:grid;
-      grid-template-columns:44px 56px minmax(0,1fr) 56px minmax(92px,auto);
+      grid-template-columns:56px 56px minmax(0,1fr) minmax(92px,auto);
       align-items:center;
       padding:7px max(var(--scanner-gap),calc((100vw - 860px)/2));
       gap:7px;
       background-color:#b9d1bd;
-      background-image:linear-gradient(90deg,rgba(255,255,255,.13),rgba(255,255,255,.025)),var(--songket-pattern);
-      background-size:100% 100%,var(--songket-sizes);
+      background-image:linear-gradient(90deg,rgba(210,225,211,.54),rgba(210,225,211,.68)),var(--songket-image);
+      background-repeat:no-repeat,repeat;
+      background-size:100% 100%,88px 88px;
+      background-position:center,center;
       border-bottom:1px solid #98b9a0;
       box-shadow:0 8px 24px rgba(28,76,50,.16),inset 0 1px 0 rgba(255,255,255,.48);
     }
-    .portal-home { grid-column:1;width:44px;height:44px;margin:0;border-radius:13px; }
-    .portal-home svg { width:23px;height:23px; }
-    .brand-logo { width:54px;height:54px;filter:drop-shadow(0 3px 4px rgba(24,73,43,.15)); }
-    .brand-logo:not(.brand-logo-right) { grid-column:2; }
-    .brand-logo-right { grid-column:4;justify-self:center; }
+    .brand-logo { width:54px;height:54px;object-fit:contain;display:block;filter:drop-shadow(0 3px 4px rgba(24,73,43,.15)); }
+    .brand-logo:not(.brand-logo-right) { grid-column:1; }
+    .brand-logo-right { grid-column:2;justify-self:center; }
     .brand-title { grid-column:3;min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;text-align:left;white-space:normal; }
-    .brand-title .portal-label,.brand-title .school-name { color:#315941;font-size:clamp(9px,1.7vw,11px);font-weight:800;line-height:1.05;letter-spacing:.45px; }
-    .brand-title h1 { margin:0;color:#17462f;font-size:clamp(15px,2.5vw,19px);font-weight:850;line-height:1.08;letter-spacing:.15px; }
-    .header-clock { grid-column:5;min-width:92px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;color:#17462f;text-align:right;font-variant-numeric:tabular-nums; }
+    .brand-title .portal-label,.brand-title .school-name { color:#315941;font-size:11px;font-weight:800;line-height:1.05;letter-spacing:.45px; }
+    .brand-title h1 { margin:0;color:#17462f;font-size:clamp(22px,6vw,27px);font-weight:900;line-height:1.04;letter-spacing:0;white-space:nowrap; }
+    .header-clock { grid-column:4;min-width:92px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;color:#17462f;text-align:right;font-variant-numeric:tabular-nums; }
     .header-clock strong { width:8ch;font-size:clamp(18px,3vw,27px);font-weight:900;line-height:1;letter-spacing:.25px;white-space:nowrap; }
     .header-clock span { max-width:150px;margin-top:4px;font-size:clamp(8px,1.3vw,10px);font-weight:700;line-height:1.08;white-space:nowrap; }
 
@@ -1049,13 +965,11 @@
       box-shadow:0 12px 26px rgba(32,77,61,.13),inset 0 1px 0 rgba(255,255,255,.75);
     }
     .manual-panel,.scan-info {
-      --motif:rgba(28,87,56,.085);
-      --songket-gold:rgba(184,142,45,.065);
       background-color:#e2eedb;
-      background-image:var(--songket-pattern),linear-gradient(145deg,rgba(247,251,239,.95),rgba(220,235,218,.94));
-      background-size:var(--songket-sizes),auto;
-      transform:translate3d(0,var(--content-parallax),0);
-      will-change:transform;
+      background-image:linear-gradient(145deg,rgba(247,251,239,.88),rgba(220,235,218,.88)),var(--songket-image);
+      background-repeat:no-repeat,repeat;
+      background-size:100% 100%,112px 112px;
+      background-position:center,center var(--songket-shift);
     }
     .manual-panel select { border-color:#a8c4ac;background:#fffdf7;box-shadow:inset 0 2px 4px rgba(45,79,53,.1); }
 
@@ -1108,16 +1022,16 @@
     #result.success { border-bottom:4px solid #75a64f; }
     #result.duplicate { border-bottom:4px solid #d2a52f; }
 
-    button,.portal-home {
+    button {
       position:relative;
       overflow:hidden;
       transform:translateZ(0);
       transition:transform 180ms ease,box-shadow 180ms ease,background-color 180ms ease,filter 180ms ease;
       -webkit-tap-highlight-color:transparent;
     }
-    button:not(:disabled):hover,.portal-home:hover { transform:translateY(-2px);filter:saturate(1.06); }
-    button:not(:disabled):active,.portal-home:active { transform:translateY(1px) scale(.97); }
-    button:focus-visible,.portal-home:focus-visible { outline:3px solid var(--portal-yellow);outline-offset:3px; }
+    button:not(:disabled):hover { transform:translateY(-2px);filter:saturate(1.06); }
+    button:not(:disabled):active { transform:translateY(1px) scale(.97); }
+    button:focus-visible { outline:3px solid var(--portal-yellow);outline-offset:3px; }
     button.is-success { animation:buttonSuccess .52s ease-out; }
     button.is-error { animation:buttonError .36s ease-out; }
     .interaction-ripple { position:absolute;z-index:8;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;pointer-events:none;background:rgba(255,255,255,.58);transform:scale(0);animation:buttonRipple .52s ease-out forwards; }
@@ -1125,36 +1039,33 @@
     @keyframes buttonSuccess { 45% { box-shadow:0 0 0 8px rgba(95,170,91,.18);transform:scale(1.025); } }
     @keyframes buttonError { 25% { transform:translateX(-3px); } 50% { transform:translateX(3px); } 75% { transform:translateX(-2px); } }
 
-    .scanner-system-overlay { --motif:rgba(28,87,56,.055);--songket-gold:rgba(184,142,45,.055);background-color:rgba(235,244,237,.96);background-image:var(--songket-pattern);background-size:var(--songket-sizes); }
-    .portal-footer { --motif:rgba(236,211,139,.19);--songket-gold:rgba(244,210,112,.2);background-color:#305845;background-image:var(--songket-pattern);background-size:var(--songket-sizes); }
+    .scanner-system-overlay { background-color:rgba(235,244,237,.96);background-image:linear-gradient(rgba(235,244,237,.84),rgba(235,244,237,.84)),var(--songket-image);background-repeat:no-repeat,repeat;background-size:100% 100%,112px 112px; }
+    .portal-footer { background-color:#305845;background-image:linear-gradient(rgba(48,88,69,.46),rgba(48,88,69,.46)),var(--songket-image);background-repeat:no-repeat,repeat;background-size:100% 100%,96px 96px;background-blend-mode:normal,screen; }
 
     @media (max-width:600px) {
       :root { --header-height:72px;--scanner-gap:12px; }
       .container { padding:calc(var(--header-height) + var(--scanner-gap)) var(--scanner-gap) 0; }
-      .brand-header { grid-template-columns:38px 44px minmax(0,1fr) 44px minmax(76px,auto);height:var(--header-height);min-height:var(--header-height);max-height:var(--header-height);padding:6px 7px;gap:4px; }
-      .portal-home { width:38px;height:38px;border-radius:11px; }
-      .portal-home svg { width:20px;height:20px; }
+      .brand-header { grid-template-columns:42px 42px minmax(0,1fr) minmax(76px,auto);height:var(--header-height);min-height:var(--header-height);max-height:var(--header-height);padding:6px 7px;gap:5px; }
       .brand-logo { width:42px;height:50px; }
-      .brand-title .portal-label,.brand-title .school-name { font-size:clamp(7.5px,2.2vw,9.5px);letter-spacing:.15px; }
-      .brand-title h1 { font-size:clamp(12px,3.5vw,16px); }
+      .brand-title .portal-label,.brand-title .school-name { font-size:10px;letter-spacing:.2px; }
+      .brand-title h1 { font-size:clamp(18px,5.1vw,22px); }
       .header-clock { min-width:76px; }
       .header-clock strong { font-size:clamp(15px,5vw,21px); }
       .header-clock span { font-size:7.5px; }
     }
     @media (max-width:360px) {
-      .brand-header { grid-template-columns:34px 38px minmax(0,1fr) 38px 70px;gap:3px;padding-inline:5px; }
-      .portal-home { width:34px;height:34px; }
+      .brand-header { grid-template-columns:38px 38px minmax(0,1fr) 70px;gap:4px;padding-inline:6px; }
       .brand-logo { width:37px;height:46px; }
-      .brand-title h1 { font-size:12px; }
-      .brand-title .portal-label,.brand-title .school-name { font-size:7px; }
+      .brand-title h1 { font-size:16px; }
+      .brand-title .portal-label,.brand-title .school-name { font-size:8px; }
       .header-clock { min-width:70px; }
       .header-clock strong { font-size:15px; }
       .header-clock span { display:block;font-size:7px; }
     }
     @media (prefers-reduced-motion:reduce) {
-      body { background-position:0 0,0 0,0 0,0 0,center top; }
+      body { background-position:center top,center top; }
       .manual-panel,.scan-info { transform:none!important; }
-      button,.portal-home { transition:none!important; }
+      button { transition:none!important; }
       .interaction-ripple { display:none!important; }
     }
   </style>
@@ -1170,10 +1081,6 @@
 
 
   <header class="brand-header">
-
-    <a id="portalHome" class="portal-home" href="#" aria-label="Kembali ke Portal Staf" title="Kembali ke Portal Staf">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 2.5 11h2v9h6v-6h3v6h6v-9h2L12 3Zm5.5 15h-2v-6h-7v6h-2v-7.1L12 6.3l5.5 4.6V18Z"/></svg>
-    </a>
 
     <img
       class="brand-logo"
@@ -1384,7 +1291,6 @@ const validApi = (() => {
 })();
 const validLaunch = validApi;
 
-document.getElementById("portalHome").href = RETURN_URL || "./";
 
 if (!validLaunch) document.querySelector("#result .waiting").textContent = "API SMART ATTENDANCE tidak tersedia.";
 if (!validApi) {
@@ -2955,12 +2861,10 @@ function updateScannerParallax() {
   parallaxFrame = 0;
   if (reducedMotion && reducedMotion.matches) {
     document.documentElement.style.setProperty("--songket-shift", "0px");
-    document.documentElement.style.setProperty("--content-parallax", "0px");
     return;
   }
   const scroll = window.scrollY || 0;
   document.documentElement.style.setProperty("--songket-shift", (-scroll * .12).toFixed(1) + "px");
-  document.documentElement.style.setProperty("--content-parallax", Math.max(-3, Math.min(3, -scroll * .012)).toFixed(1) + "px");
 }
 function scheduleScannerParallax() {
   if (!parallaxFrame) parallaxFrame = requestAnimationFrame(updateScannerParallax);
@@ -2972,7 +2876,7 @@ scheduleScannerParallax();
 
 // Maklum balas sentuhan yang sama untuk semua butang interaktif.
 document.addEventListener("pointerdown", function(event) {
-  const control = event.target.closest("button:not(:disabled), .portal-home");
+  const control = event.target.closest("button:not(:disabled)");
   if (!control || (reducedMotion && reducedMotion.matches)) return;
   const rect = control.getBoundingClientRect();
   const ripple = document.createElement("span");
