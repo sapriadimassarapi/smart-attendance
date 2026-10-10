@@ -830,6 +830,10 @@
     .manual-panel button { min-height:44px; border:0; border-radius:6px; background:#155a4d; color:#fff; font:inherit; font-weight:700; cursor:pointer; }
     .manual-panel button:disabled { opacity:.5; cursor:not-allowed; }
     .manual-panel p { min-height:20px; margin:0; font-size:14px; }
+    .manual-photo-preview { display:flex;align-items:center;gap:10px;min-height:58px;padding:8px 10px;border:1px solid rgba(28,87,56,.18);border-radius:12px;background:rgba(255,255,255,.62); }
+    .manual-photo-preview[hidden] { display:none; }
+    .manual-photo-preview .student-photo-frame { width:48px;height:48px;flex:0 0 48px;margin:0; }
+    .manual-photo-preview span { color:#315941;font-size:13px;font-weight:700; }
     #scannerPin { margin:6px 0 12px; }
     #result .class { font-weight:700; }
     #result .time { margin-top:8px; }
@@ -986,15 +990,17 @@
     .manual-panel select { border-color:#a8c4ac;background:#fffdf7;box-shadow:inset 0 2px 4px rgba(45,79,53,.1); }
 
     #result,#result.success,#result.duplicate {
-      height:260px;
-      min-height:260px;
-      max-height:260px;
+      height:344px;
+      min-height:344px;
+      max-height:344px;
       padding:16px 14px;
       overflow:visible;
       gap:0;
       background:linear-gradient(145deg,#fffef8,#f3f8ee);
     }
     #result.success,#result.duplicate { display:flex; }
+    .student-photo-frame { width:78px;height:78px;flex:0 0 78px;margin:0 0 7px;border:3px solid #fff;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:linear-gradient(145deg,#dcebdc,#b9d6c0);box-shadow:0 5px 14px rgba(27,77,55,.2);color:#315941;font-size:30px;font-weight:900;line-height:1; }
+    .student-photo-frame img { width:100%;height:100%;display:block;object-fit:cover;object-position:center; }
     #result.success .icon,#result.duplicate .icon { flex:0 0 auto;font-size:34px;line-height:1;margin:0 0 7px; }
     #result.success .title,#result.duplicate .title { flex:0 0 auto;font-size:clamp(17px,4.6vw,22px);line-height:1.12; }
     #result .name {
@@ -1257,6 +1263,7 @@
     <select id="manualClass" disabled><option value="">Memuatkan kelas...</option></select>
     <label for="manualStudent">Nama murid</label>
     <select id="manualStudent" disabled><option value="">Pilih nama</option></select>
+    <div id="manualPhotoPreview" class="manual-photo-preview" hidden aria-live="polite"></div>
     <button id="manualSubmit" type="button" disabled>Rekod kehadiran</button>
     <p id="manualStatus" role="status">Pilih kelas, kemudian pilih nama murid.</p>
   </section>
@@ -1331,6 +1338,7 @@ let currentFacingMode = "environment";
 let scanEffectTimer = null;
 let cameraReady = false;
 let rosterReady = false;
+let photosReady = false;
 let startupError = null;
 let readyOverlayShown = false;
 let startupPromise = null;
@@ -1400,7 +1408,7 @@ function setBoatLoadingProgress(progress) {
 function showBoatLoading(message) {
   if (!boatLoadingStartedAt) boatLoadingStartedAt = performance.now();
   setScannerSystemState("loading", message);
-  setBoatLoadingProgress(.12 + (cameraReady ? .36 : 0) + (rosterReady ? .46 : 0));
+  setBoatLoadingProgress(.10 + (cameraReady ? .30 : 0) + (rosterReady ? .34 : 0) + (photosReady ? .24 : 0));
 }
 
 function setScannerSystemState(state, message) {
@@ -1428,12 +1436,12 @@ function updateStartupReadiness() {
     setScannerSystemState("waiting-permission");
     return;
   }
-  if (!cameraReady || !rosterReady) {
-    const message = cameraReady
-      ? "Kamera sedia. Bot sedang menyediakan data kelas dan murid..."
-      : rosterReady
-        ? "Data sedia. Bot sedang menyediakan kamera..."
-        : "Bot sedang menyediakan kamera dan data murid...";
+  if (!cameraReady || !rosterReady || !photosReady) {
+    const message = !cameraReady
+      ? (rosterReady ? "Data murid sedia. Bot sedang menyediakan kamera..." : "Bot sedang menyediakan kamera dan data murid...")
+      : !rosterReady
+        ? "Kamera sedia. Bot sedang menyediakan data kelas dan murid..."
+        : "Nama murid sedia. Bot sedang memuat awal gambar murid...";
     showBoatLoading(message);
     return;
   }
@@ -1474,6 +1482,7 @@ async function beginStartup() {
   startupError = null;
   cameraReady = cameraRunning;
   rosterReady = studentDirectory.size > 0;
+  photosReady = false;
   readyOverlayShown = false;
   boatLoadingStartedAt = 0;
   clearTimeout(minimumLoadingTimer);
@@ -1493,6 +1502,7 @@ async function beginStartup() {
 async function retryStartup() {
   startupPromise = null;
   rosterLoadPromise = null;
+  photoPreloadPromise = null;
   startupError = null;
   readyOverlayShown = false;
   boatLoadingStartedAt = 0;
@@ -1501,6 +1511,7 @@ async function retryStartup() {
   if (cameraRunning) cameraReady = true;
   else cameraReady = false;
   rosterReady = studentDirectory.size > 0;
+  photosReady = false;
   showBoatLoading("Bot sedang mencuba semula...");
   await beginStartup();
 }
@@ -1560,10 +1571,15 @@ const recordedTokens = new Map();
 const inFlightTokens = new Set();
 const studentDirectory = new Map();
 const manualRosterByClass = new Map();
+const studentPhotoCache = new Map();
+const photoUrlPromises = new Map();
 let manualStudents = [];
 let rosterLoadPromise = null;
+let photoPreloadPromise = null;
 let cachedClasses = [];
-const DIRECTORY_CACHE_KEY = "smartAttendanceStudentDirectoryV2";
+const DIRECTORY_CACHE_KEY = "smartAttendanceStudentDirectoryV3";
+const PHOTO_PRELOAD_WORKERS = 5;
+const PHOTO_READY_TIMEOUT_MS = 12000;
 let activeDisplayToken = "";
 let lastSuccessfulScan = null;
 
@@ -1572,6 +1588,7 @@ let lastSuccessfulScan = null;
 try {
   const cached = JSON.parse(
     localStorage.getItem(DIRECTORY_CACHE_KEY) ||
+    localStorage.getItem("smartAttendanceStudentDirectoryV2") ||
     localStorage.getItem("smartAttendanceStudentDirectoryV1") ||
     "null"
   );
@@ -1600,6 +1617,120 @@ function hydrateManualRosterFromCache() {
 }
 
 hydrateManualRosterFromCache();
+
+function normalizeStudentRecord(student, fallbackClass) {
+  const id = String(student && (student.muridId || student.id) || "").trim();
+  return {
+    id,
+    muridId: id,
+    nama: student && student.nama || "Pelajar",
+    kelas: student && student.kelas || fallbackClass || "",
+    photoFileName: student && student.photoFileName || (id ? id + ".webp" : ""),
+    photoFileId: student && student.photoFileId || "",
+    photoUrl: student && student.photoUrl || ""
+  };
+}
+
+function getStudentPhotoState(student) {
+  const normalized = normalizeStudentRecord(student);
+  return studentPhotoCache.get(normalized.id) || {
+    status: normalized.photoUrl ? "pending" : "missing",
+    url: normalized.photoUrl
+  };
+}
+
+function loadPhotoUrl(url) {
+  if (!url) return Promise.resolve(false);
+  if (photoUrlPromises.has(url)) return photoUrlPromises.get(url);
+  const promise = new Promise(resolve => {
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => resolve(true);
+    image.onerror = () => resolve(false);
+    image.src = url;
+  });
+  photoUrlPromises.set(url, promise);
+  return promise;
+}
+
+async function preloadOneStudentPhoto(student) {
+  const normalized = normalizeStudentRecord(student);
+  if (!normalized.id) return;
+  if (!normalized.photoUrl) {
+    studentPhotoCache.set(normalized.id, {status:"missing", url:""});
+    return;
+  }
+  const existing = studentPhotoCache.get(normalized.id);
+  if (existing && existing.url === normalized.photoUrl && existing.status === "ready") return;
+  studentPhotoCache.set(normalized.id, {status:"loading", url:normalized.photoUrl});
+  const loaded = await loadPhotoUrl(normalized.photoUrl);
+  studentPhotoCache.set(normalized.id, {
+    status: loaded ? "ready" : "error",
+    url: normalized.photoUrl
+  });
+}
+
+function preloadStudentPhotos(students) {
+  if (photoPreloadPromise) return photoPreloadPromise;
+  const queue = Array.from(new Map(students.map(item => {
+    const normalized = normalizeStudentRecord(item);
+    return [normalized.id, normalized];
+  })).values()).filter(student => student.id);
+  let nextIndex = 0;
+  let completed = 0;
+  const workerCount = Math.min(PHOTO_PRELOAD_WORKERS, Math.max(1, queue.length));
+  photoPreloadPromise = Promise.allSettled(Array.from({length:workerCount}, async function() {
+    while (nextIndex < queue.length) {
+      const student = queue[nextIndex++];
+      await preloadOneStudentPhoto(student);
+      completed += 1;
+      if (!readyOverlayShown) {
+        showBoatLoading("Memuat awal gambar murid " + completed + "/" + queue.length + "...");
+      }
+    }
+  })).then(() => ({completed, total:queue.length}));
+  return photoPreloadPromise;
+}
+
+async function waitForPhotoReadiness(students) {
+  const task = preloadStudentPhotos(students);
+  await Promise.race([
+    task,
+    new Promise(resolve => setTimeout(resolve, PHOTO_READY_TIMEOUT_MS))
+  ]);
+  photosReady = true;
+  updateStartupReadiness();
+  task.then(function() {
+    const selectedId = document.getElementById("manualStudent").value;
+    if (selectedId) updateManualPhotoPreview(studentDirectory.get(selectedId));
+  });
+}
+
+function studentInitial(name) {
+  return Array.from(String(name || "M").trim())[0] || "M";
+}
+
+function studentPhotoHtml(student) {
+  const normalized = normalizeStudentRecord(student);
+  const state = getStudentPhotoState(normalized);
+  if (state.status === "ready" && state.url) {
+    return '<div class="student-photo-frame"><img src="' + escapeHtml(state.url) + '" alt="Gambar ' + escapeHtml(normalized.nama) + '"></div>';
+  }
+  return '<div class="student-photo-frame" aria-label="Gambar belum tersedia">' + escapeHtml(studentInitial(normalized.nama)) + '</div>';
+}
+
+function updateManualPhotoPreview(student) {
+  const preview = document.getElementById("manualPhotoPreview");
+  if (!student) {
+    preview.hidden = true;
+    preview.replaceChildren();
+    return;
+  }
+  preview.hidden = false;
+  preview.innerHTML = studentPhotoHtml(student) + '<span>' +
+    (getStudentPhotoState(student).status === "ready" ? "Gambar murid tersedia" : "Gambar belum tersedia — avatar digunakan") +
+    '</span>';
+}
 
 function setScanFeedback(message, kind) {
   const feedback = document.getElementById("scanFeedback");
@@ -2587,6 +2718,7 @@ function showOptimisticSuccess(student, qrValue) {
   result.classList.remove("duplicate");
   result.classList.add("success");
   result.innerHTML =
+    studentPhotoHtml(student) +
     '<div class="icon">✅</div>' +
     '<div class="title">KEHADIRAN DIREKODKAN</div>' +
     studentNameHtml(student.nama) +
@@ -2603,10 +2735,18 @@ function showResult(data, qrValue, options = {}) {
   const isCurrent = !qrValue || qrValue === activeDisplayToken;
 
   if (data && (data.success || data.duplicate)) {
-    if (qrValue && data.nama) {
-      studentDirectory.set(String(qrValue).trim(), {
-        id:String(qrValue).trim(), nama:data.nama, kelas:data.kelas || ""
-      });
+    const resultId = String(qrValue || data.id || (data.student && data.student.id) || "").trim();
+    const previousStudent = resultId ? studentDirectory.get(resultId) : null;
+    const displayStudent = normalizeStudentRecord({
+      id: resultId,
+      nama: data.nama || (data.student && data.student.nama),
+      kelas: data.kelas || (data.student && data.student.kelas),
+      photoFileName: data.photoFileName || (data.student && data.student.photoFileName) || (previousStudent && previousStudent.photoFileName),
+      photoFileId: data.photoFileId || (data.student && data.student.photoFileId) || (previousStudent && previousStudent.photoFileId),
+      photoUrl: data.photoUrl || (data.student && data.student.photoUrl) || (previousStudent && previousStudent.photoUrl)
+    });
+    if (resultId && displayStudent.nama) {
+      studentDirectory.set(resultId, displayStudent);
       saveStudentDirectoryCache();
     }
     if (qrValue && !data.syncWarning) recordedTokens.set(String(qrValue).trim(), {
@@ -2619,11 +2759,12 @@ function showResult(data, qrValue, options = {}) {
       result.classList.remove("success");
       result.classList.add("duplicate");
       result.innerHTML =
+        studentPhotoHtml(displayStudent) +
         '<div class="icon">⚠️</div>' +
         '<div class="title">KEHADIRAN SUDAH DIREKOD</div>' +
         studentNameHtml(data.nama) +
         '<div class="class">' + escapeHtml(data.kelas || "") + '</div>' +
-        '<div class="status">' + escapeHtml(data.status || "SUDAH DIREKOD") + '</div>' +
+        '<div class="status">' + escapeHtml(data.attendanceStatus || "SUDAH DIREKOD") + '</div>' +
         '<div class="time">' + escapeHtml(data.masa || "") + '</div>';
     } else {
       if (!options.optimisticShown) soundSuccess();
@@ -2632,11 +2773,12 @@ function showResult(data, qrValue, options = {}) {
       result.classList.remove("duplicate");
       result.classList.add("success");
       result.innerHTML =
+        studentPhotoHtml(displayStudent) +
         '<div class="icon">✅</div>' +
         '<div class="title">KEHADIRAN DIREKODKAN</div>' +
         studentNameHtml(data.nama) +
         '<div class="class">' + escapeHtml(data.kelas || "") + '</div>' +
-        '<div class="status">' + escapeHtml(data.status || "HADIR") + '</div>' +
+        '<div class="status">' + escapeHtml(data.attendanceStatus || "HADIR") + '</div>' +
         '<div class="time">' + escapeHtml(data.masa || "") + '</div>';
     }
     if (data.syncWarning) {
@@ -2758,6 +2900,7 @@ document.getElementById("manualClass").addEventListener("change", function() {
   const select = document.getElementById("manualStudent");
   const status = document.getElementById("manualStatus");
   document.getElementById("manualSubmit").disabled = true;
+  updateManualPhotoPreview(null);
   manualStudents = kelas ? (manualRosterByClass.get(kelas) || []) : [];
   select.replaceChildren(new Option("Pilih nama", ""), ...manualStudents.map(s => new Option(s.nama, s.muridId)));
   select.disabled = !manualStudents.length;
@@ -2771,6 +2914,7 @@ document.getElementById("manualClass").addEventListener("change", function() {
 document.getElementById("scannerRetryButton").addEventListener("click", retryStartup);
 document.getElementById("manualStudent").addEventListener("change", function() {
   document.getElementById("manualSubmit").disabled = !this.value;
+  updateManualPhotoPreview(manualStudents.find(student => String(student.muridId || student.id) === this.value) || null);
 });
 document.getElementById("manualSubmit").addEventListener("click", async function() {
   const muridId = document.getElementById("manualStudent").value;
@@ -2815,7 +2959,7 @@ function saveStudentDirectoryCache() {
     const rosters = {};
     manualRosterByClass.forEach((students, kelasId) => { rosters[kelasId] = students; });
     localStorage.setItem(DIRECTORY_CACHE_KEY, JSON.stringify({
-      version: 2,
+      version: 3,
       savedAt: Date.now(),
       students: Array.from(studentDirectory.values()),
       classes: cachedClasses,
@@ -2836,6 +2980,7 @@ async function preloadStudentDirectory(force = false) {
   const status = document.getElementById("manualStatus");
   const cacheAvailable = studentDirectory.size > 0;
   rosterReady = cacheAvailable;
+  photosReady = false;
   classSelect.disabled = !cachedClasses.length;
   studentSelect.disabled = true;
   status.textContent = cacheAvailable
@@ -2867,16 +3012,13 @@ async function preloadStudentDirectory(force = false) {
             const data = await scannerApi("students", {kelas:kelas.kelasId});
             if (!data.success) throw new Error(data.message || "Data murid gagal dimuatkan.");
             const students = Array.isArray(data.students) ? data.students : [];
-            freshRosters.set(String(kelas.kelasId), students);
+            const normalizedStudents = students.map(student => normalizeStudentRecord(student, kelas.nama || kelas.kelasId));
+            freshRosters.set(String(kelas.kelasId), normalizedStudents);
             successfulClasses += 1;
-            students.forEach(student => {
-              const id = String(student.muridId || student.id || "").trim();
+            normalizedStudents.forEach(student => {
+              const id = student.id;
               if (!id) return;
-              studentDirectory.set(id, {
-                id,
-                nama: student.nama || "Pelajar",
-                kelas: student.kelas || kelas.nama || kelas.kelasId || ""
-              });
+              studentDirectory.set(id, student);
             });
           } catch (error) {
             console.warn("Kelas gagal dikemas kini:", kelas.nama || kelas.kelasId, error);
@@ -2890,12 +3032,21 @@ async function preloadStudentDirectory(force = false) {
       saveStudentDirectoryCache();
       rosterReady = studentDirectory.size > 0;
       status.textContent = successfulClasses === cachedClasses.length
-        ? "Semua data tersedia. Pilih kelas dan nama murid."
+        ? "Nama murid tersedia. Memuat awal gambar murid..."
+        : "Sebahagian data dikemas kini. Data cache masih boleh digunakan.";
+      photoPreloadPromise = null;
+      await waitForPhotoReadiness(Array.from(studentDirectory.values()));
+      status.textContent = successfulClasses === cachedClasses.length
+        ? "Semua data dan gambar tersedia. Pilih kelas dan nama murid."
         : "Sebahagian data dikemas kini. Data cache masih boleh digunakan.";
       console.debug("[PERF] Semua murid:", Math.round(performance.now() - preloadStartedAt) + "ms");
       updateStartupReadiness();
     } catch (error) {
       rosterReady = studentDirectory.size > 0;
+      if (rosterReady) {
+        photoPreloadPromise = null;
+        await waitForPhotoReadiness(Array.from(studentDirectory.values()));
+      }
       if (!rosterReady) classSelect.replaceChildren(new Option("Data belum tersedia", ""));
       status.textContent = rosterReady
         ? "Kemas kini gagal. Data cache masih boleh digunakan."
