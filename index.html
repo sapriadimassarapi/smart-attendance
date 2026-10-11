@@ -1040,43 +1040,56 @@
     #result.success { border-bottom:4px solid #75a64f; }
     #result.duplicate { border-bottom:4px solid #d2a52f; }
 
-    /* Paparan keputusan: maklumat kiri, foto segi empat kanan, nama penuh di bawah. */
-    #result,#result.success,#result.duplicate { height:380px;min-height:380px;max-height:380px;padding:18px; }
+    /* Kad padat: foto utama di kiri, nama dan metadata di kanan. */
+    #result,#result.success,#result.duplicate { height:clamp(210px,28svh,270px);min-height:210px;max-height:270px;padding:12px;margin-top:6px; }
     #result.success,#result.duplicate { display:block; }
     .result-content {
       width:100%;height:100%;display:grid;
-      grid-template-columns:minmax(0,1fr) clamp(120px,34vw,145px);
-      grid-template-rows:minmax(150px,1fr) auto auto;
-      grid-template-areas:"details photo" "name name" "message message";
-      align-items:center;column-gap:18px;row-gap:10px;
+      grid-template-columns:clamp(120px,35vw,155px) minmax(0,1fr);
+      grid-template-rows:minmax(0,1fr) auto auto;
+      grid-template-areas:"photo name" "photo meta" "message message";
+      align-items:center;column-gap:12px;row-gap:7px;
     }
-    .result-details { grid-area:details;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px; }
+    .result-meta { grid-area:meta;min-width:0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px 6px;align-self:start; }
     .result-class,.result-status,.result-time { max-width:100%;text-align:center; }
-    .result-class { padding:7px 13px;border:1px solid #bfd3bf;border-radius:999px;background:#e3ede0;color:#315941;font-size:clamp(14px,4vw,18px);font-weight:800;line-height:1.12;overflow-wrap:anywhere; }
-    .result-status { min-width:86px;padding:8px 14px;border:1px solid #a9c875;border-radius:999px;background:#d9edac;color:#315826;font-size:clamp(15px,4.2vw,19px);font-weight:900;line-height:1; }
+    .result-class { padding:5px 9px;border:1px solid #bfd3bf;border-radius:999px;background:#e3ede0;color:#315941;font-size:clamp(11px,3.2vw,14px);font-weight:800;line-height:1.05;overflow-wrap:anywhere; }
+    .result-status { padding:6px 10px;border:1px solid #a9c875;border-radius:999px;background:#d9edac;color:#315826;font-size:clamp(11px,3.25vw,14px);font-weight:900;line-height:1; }
     .result-status.is-late { background:#ffe2a4;border-color:#e6b95c;color:#76500d; }
     .result-status.is-pending { background:#e8eef1;border-color:#bdccd3;color:#405b69; }
     .result-status.is-error { background:#fee2e2;border-color:#efa7a7;color:#9d2727; }
     #result.duplicate .result-status { background:#fff0ba;border-color:#e4c96e;color:#725411; }
-    .result-time { color:#68776f;font-size:clamp(13px,3.7vw,16px);font-weight:700;line-height:1.15; }
-    #result .student-photo-frame { grid-area:photo;width:clamp(120px,34vw,145px);height:auto;aspect-ratio:1/1;margin:0;border:2px solid rgba(207,168,68,.68);border-radius:18px;background:#fff;box-shadow:0 7px 18px rgba(24,67,49,.18);color:#315941;font-size:clamp(35px,11vw,50px);animation:resultPhotoIn 280ms ease-out both; }
+    .result-time { color:#68776f;font-size:clamp(10px,3vw,13px);font-weight:750;line-height:1.05;white-space:nowrap; }
+    #result .student-photo-frame { grid-area:photo;width:clamp(120px,35vw,155px);height:auto;aspect-ratio:1/1;margin:0;align-self:center;border:2px solid rgba(207,168,68,.68);border-radius:15px;background:#fff;box-shadow:0 7px 18px rgba(24,67,49,.18);color:#315941;font-size:clamp(35px,11vw,50px);animation:resultPhotoIn 260ms ease-out both; }
     #result .student-photo-frame img { width:100%;height:100%;object-fit:cover;object-position:center;background:transparent; }
-    #result .result-name { grid-area:name;width:100%;min-height:2.18em;max-height:2.18em;margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#1d283a;font-size:clamp(25px,7vw,38px);font-weight:900;line-height:1.09;letter-spacing:-.4px;text-align:center;text-wrap:balance;overflow-wrap:anywhere;animation:resultNameIn 300ms ease-out 60ms both; }
-    #result .result-name.name-long { font-size:clamp(21px,5.6vw,30px); }
-    #result .result-name.name-very-long { font-size:clamp(18px,4.8vw,25px);letter-spacing:-.55px; }
-    .result-message { grid-area:message;min-height:1.35em;max-height:2.7em;margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#39724f;font-size:clamp(13px,3.7vw,16px);font-weight:750;line-height:1.35;text-align:center; }
+    #result .result-name { grid-area:name;width:100%;min-height:0;max-height:3.15em;margin:0;align-self:end;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;color:#1d283a;font-size:clamp(21px,6vw,34px);font-weight:900;line-height:1.05;letter-spacing:-.4px;text-align:center;text-wrap:balance;overflow-wrap:anywhere;animation:resultNameIn 280ms ease-out 50ms both; }
+    #result .result-name.name-long { font-size:clamp(18px,5vw,27px); }
+    #result .result-name.name-very-long { font-size:clamp(16px,4.35vw,23px);letter-spacing:-.55px; }
+    .result-message { grid-area:message;min-height:1.25em;max-height:2.5em;margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#39724f;font-size:clamp(11px,3.25vw,14px);font-weight:750;line-height:1.25;text-align:center; }
     #result.duplicate .result-message { color:#76500d; }
     .result-content.is-error .result-message { color:#9d2727; }
     .manual-photo-preview .student-photo-frame { border-radius:10px;background:#fff;border:1px solid rgba(207,168,68,.55); }
     @keyframes resultPhotoIn { from { opacity:0;transform:scale(.96); } to { opacity:1;transform:scale(1); } }
     @keyframes resultNameIn { from { opacity:0;transform:translateY(4px); } to { opacity:1;transform:translateY(0); } }
     @media (max-width:360px) {
-      #result,#result.success,#result.duplicate { height:360px;min-height:360px;max-height:360px;padding:14px; }
-      .result-content { grid-template-columns:minmax(0,1fr) clamp(96px,32vw,116px);grid-template-rows:minmax(126px,1fr) auto auto;column-gap:11px;row-gap:8px; }
-      #result .student-photo-frame { width:clamp(96px,32vw,116px);border-radius:15px; }
-      .result-details { gap:9px; }
-      .result-class { padding:6px 9px; }
-      .result-status { min-width:76px;padding:7px 10px; }
+      #result,#result.success,#result.duplicate { height:210px;min-height:210px;max-height:210px;padding:9px; }
+      .result-content { grid-template-columns:clamp(105px,34vw,122px) minmax(0,1fr);column-gap:8px;row-gap:5px; }
+      #result .student-photo-frame { width:clamp(105px,34vw,122px);border-radius:12px; }
+      .result-meta { gap:4px; }
+      .result-class,.result-status { padding:5px 7px; }
+    }
+    @media (max-height:760px) {
+      #result,#result.success,#result.duplicate { height:190px;min-height:190px;max-height:190px;padding:8px;margin-top:4px; }
+      .result-content { grid-template-columns:clamp(100px,30svh,130px) minmax(0,1fr);column-gap:8px;row-gap:4px; }
+      #result .student-photo-frame { width:clamp(100px,30svh,130px);border-radius:12px; }
+      #result .result-name { font-size:clamp(18px,5.4vw,28px); }
+      #result .result-name.name-long { font-size:clamp(16px,4.7vw,24px); }
+      #result .result-name.name-very-long { font-size:clamp(14px,4.05vw,20px); }
+      .result-message { font-size:clamp(10px,3vw,13px); }
+    }
+    @media (max-height:620px) {
+      #result,#result.success,#result.duplicate { height:165px;min-height:165px;max-height:165px;padding:7px; }
+      .result-content { grid-template-columns:clamp(88px,26svh,108px) minmax(0,1fr); }
+      #result .student-photo-frame { width:clamp(88px,26svh,108px); }
     }
 
     button {
@@ -2505,16 +2518,13 @@ function sendToGoogleSheets(
           cleanupJsonp(callbackName, script);
           return;
         }
-        soundError();
         if (optimisticShown) {
-          const result = document.getElementById("result");
-          result.classList.remove("success", "duplicate");
-          result.innerHTML = '<div class="icon">❌</div>' +
-            '<div class="title">REKOD BELUM DISAHKAN</div>' +
-            '<div class="time">Sambungan gagal. Sila imbas semula.</div>';
-          setScanFeedback("Data tidak berjaya disimpan. Sila imbas semula.", "error");
+          updateActiveResultStatus(qrValue, "RALAT", "Rekod gagal. Sila cuba lagi.", "error");
+          setScanFeedback("", "");
         } else if (lastSuccessfulScan) setScanFeedback("Sambungan gagal. Sila cuba semula.", "error");
         else {
+
+        soundError();
 
 
         document.getElementById(
@@ -2758,15 +2768,35 @@ function studentResultHtml(student, options = {}) {
         ? " is-late"
         : "";
   return '<div class="result-content' + (options.mode === "error" ? ' is-error' : '') + '">' +
-    '<div class="result-details">' +
+    studentPhotoHtml(student) +
+    studentNameHtml(student.nama) +
+    '<div class="result-meta">' +
       '<div class="result-class">' + escapeHtml(student.kelas || "-") + '</div>' +
       '<div class="result-status' + statusClass + '">' + escapeHtml(status) + '</div>' +
       '<div class="result-time">' + escapeHtml(options.time || "") + '</div>' +
     '</div>' +
-    studentPhotoHtml(student) +
-    studentNameHtml(student.nama) +
     '<p class="result-message">' + escapeHtml(options.message || "") + '</p>' +
   '</div>';
+}
+
+function updateActiveResultStatus(qrValue, status, message, mode) {
+  if (!qrValue || qrValue !== activeDisplayToken) return false;
+  const result = document.getElementById("result");
+  const statusElement = result.querySelector(".result-status");
+  const messageElement = result.querySelector(".result-message");
+  if (!statusElement || !messageElement) return false;
+
+  const normalizedStatus = String(status || "HADIR").toUpperCase();
+  statusElement.textContent = normalizedStatus;
+  statusElement.classList.remove("is-late", "is-pending", "is-error");
+  if (mode === "error") statusElement.classList.add("is-error");
+  else if (mode === "pending") statusElement.classList.add("is-pending");
+  else if (normalizedStatus === "LEWAT") statusElement.classList.add("is-late");
+  messageElement.textContent = message || "";
+  result.classList.toggle("duplicate", mode === "duplicate");
+  result.classList.toggle("success", mode !== "error");
+  result.querySelector(".result-content")?.classList.toggle("is-error", mode === "error");
+  return true;
 }
 
 function showOptimisticSuccess(student, qrValue) {
@@ -2783,7 +2813,7 @@ function showOptimisticSuccess(student, qrValue) {
     message:"Rekod sedang disahkan.",
     mode:"pending"
   });
-  setScanFeedback("Sedang menyimpan data di belakang...", "pending");
+  setScanFeedback("", "");
   soundSuccess();
   if (navigator.vibrate) navigator.vibrate(150);
 }
@@ -2811,6 +2841,29 @@ function showResult(data, qrValue, options = {}) {
       nama:data.nama,kelas:data.kelas,masa:data.masa,lastSeenAt:Date.now()
     });
     if (!isCurrent) return;
+    if (options.optimisticShown && qrValue) {
+      if (data.duplicate) {
+        updateActiveResultStatus(
+          qrValue,
+          "SUDAH DIREKOD",
+          "Kehadiran telah direkodkan lebih awal.",
+          "duplicate"
+        );
+      } else {
+        const confirmedStatus = String(data.attendanceStatus || "HADIR").toUpperCase();
+        updateActiveResultStatus(
+          qrValue,
+          confirmedStatus,
+          confirmedStatus === "LEWAT"
+            ? "Kehadiran anda telah direkodkan."
+            : "Tahniah kerana hadir hari ini!",
+          "success"
+        );
+      }
+      setScanFeedback("", "");
+      prepareNextScan();
+      return;
+    }
     if (data.duplicate) {
       soundDuplicate();
       setScanFeedback((data.nama || "Murid") + " sudah direkod hari ini" + (data.masa ? " pada " + data.masa : "") + ".", "warning");
@@ -2848,11 +2901,14 @@ function showResult(data, qrValue, options = {}) {
   }
 
   if (!isCurrent) return;
-  soundError();
+  if (!options.optimisticShown) soundError();
   const message = data && data.message ? data.message : "Cuba lagi.";
   const knownId = String(qrValue || (data && data.id) || "").trim();
   const knownStudent = knownId ? studentDirectory.get(knownId) : null;
-  if (knownStudent) {
+  if (knownStudent && options.optimisticShown) {
+    updateActiveResultStatus(knownId, "RALAT", "Rekod gagal. Sila cuba lagi.", "error");
+    setScanFeedback("", "");
+  } else if (knownStudent) {
     result.classList.remove("success", "duplicate");
     result.innerHTML = studentResultHtml(knownStudent, {
       status:"RALAT",
@@ -2870,7 +2926,7 @@ function showResult(data, qrValue, options = {}) {
       '<div class="title">' + (/QR murid gagal dikenal pasti|Token QR tidak sah/i.test(message) ? 'QR TIDAK DAPAT DIBACA' : 'IMBASAN GAGAL') + '</div>' +
       '<div class="time">' + escapeHtml(message) + '</div>';
   }
-  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  if (navigator.vibrate && !options.optimisticShown) navigator.vibrate([200, 100, 200]);
   prepareNextScan();
 }
 
