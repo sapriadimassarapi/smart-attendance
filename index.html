@@ -1040,6 +1040,45 @@
     #result.success { border-bottom:4px solid #75a64f; }
     #result.duplicate { border-bottom:4px solid #d2a52f; }
 
+    /* Paparan keputusan: maklumat kiri, foto segi empat kanan, nama penuh di bawah. */
+    #result,#result.success,#result.duplicate { height:380px;min-height:380px;max-height:380px;padding:18px; }
+    #result.success,#result.duplicate { display:block; }
+    .result-content {
+      width:100%;height:100%;display:grid;
+      grid-template-columns:minmax(0,1fr) clamp(120px,34vw,145px);
+      grid-template-rows:minmax(150px,1fr) auto auto;
+      grid-template-areas:"details photo" "name name" "message message";
+      align-items:center;column-gap:18px;row-gap:10px;
+    }
+    .result-details { grid-area:details;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px; }
+    .result-class,.result-status,.result-time { max-width:100%;text-align:center; }
+    .result-class { padding:7px 13px;border:1px solid #bfd3bf;border-radius:999px;background:#e3ede0;color:#315941;font-size:clamp(14px,4vw,18px);font-weight:800;line-height:1.12;overflow-wrap:anywhere; }
+    .result-status { min-width:86px;padding:8px 14px;border:1px solid #a9c875;border-radius:999px;background:#d9edac;color:#315826;font-size:clamp(15px,4.2vw,19px);font-weight:900;line-height:1; }
+    .result-status.is-late { background:#ffe2a4;border-color:#e6b95c;color:#76500d; }
+    .result-status.is-pending { background:#e8eef1;border-color:#bdccd3;color:#405b69; }
+    .result-status.is-error { background:#fee2e2;border-color:#efa7a7;color:#9d2727; }
+    #result.duplicate .result-status { background:#fff0ba;border-color:#e4c96e;color:#725411; }
+    .result-time { color:#68776f;font-size:clamp(13px,3.7vw,16px);font-weight:700;line-height:1.15; }
+    #result .student-photo-frame { grid-area:photo;width:clamp(120px,34vw,145px);height:auto;aspect-ratio:1/1;margin:0;border:2px solid rgba(207,168,68,.68);border-radius:18px;background:#fff;box-shadow:0 7px 18px rgba(24,67,49,.18);color:#315941;font-size:clamp(35px,11vw,50px);animation:resultPhotoIn 280ms ease-out both; }
+    #result .student-photo-frame img { width:100%;height:100%;object-fit:cover;object-position:center;background:transparent; }
+    #result .result-name { grid-area:name;width:100%;min-height:2.18em;max-height:2.18em;margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#1d283a;font-size:clamp(25px,7vw,38px);font-weight:900;line-height:1.09;letter-spacing:-.4px;text-align:center;text-wrap:balance;overflow-wrap:anywhere;animation:resultNameIn 300ms ease-out 60ms both; }
+    #result .result-name.name-long { font-size:clamp(21px,5.6vw,30px); }
+    #result .result-name.name-very-long { font-size:clamp(18px,4.8vw,25px);letter-spacing:-.55px; }
+    .result-message { grid-area:message;min-height:1.35em;max-height:2.7em;margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#39724f;font-size:clamp(13px,3.7vw,16px);font-weight:750;line-height:1.35;text-align:center; }
+    #result.duplicate .result-message { color:#76500d; }
+    .result-content.is-error .result-message { color:#9d2727; }
+    .manual-photo-preview .student-photo-frame { border-radius:10px;background:#fff;border:1px solid rgba(207,168,68,.55); }
+    @keyframes resultPhotoIn { from { opacity:0;transform:scale(.96); } to { opacity:1;transform:scale(1); } }
+    @keyframes resultNameIn { from { opacity:0;transform:translateY(4px); } to { opacity:1;transform:translateY(0); } }
+    @media (max-width:360px) {
+      #result,#result.success,#result.duplicate { height:360px;min-height:360px;max-height:360px;padding:14px; }
+      .result-content { grid-template-columns:minmax(0,1fr) clamp(96px,32vw,116px);grid-template-rows:minmax(126px,1fr) auto auto;column-gap:11px;row-gap:8px; }
+      #result .student-photo-frame { width:clamp(96px,32vw,116px);border-radius:15px; }
+      .result-details { gap:9px; }
+      .result-class { padding:6px 9px; }
+      .result-status { min-width:76px;padding:7px 10px; }
+    }
+
     button {
       position:relative;
       overflow:hidden;
@@ -2706,7 +2745,28 @@ function studentNameHtml(name) {
   const value = String(name || "Pelajar");
   const length = Array.from(value).length;
   const sizeClass = length > 52 ? " name-very-long" : length > 34 ? " name-long" : "";
-  return '<div class="name' + sizeClass + '">' + escapeHtml(value) + '</div>';
+  return '<div class="result-name' + sizeClass + '">' + escapeHtml(value) + '</div>';
+}
+
+function studentResultHtml(student, options = {}) {
+  const status = String(options.status || "HADIR").toUpperCase();
+  const statusClass = options.mode === "error"
+    ? " is-error"
+    : options.mode === "pending"
+      ? " is-pending"
+      : status === "LEWAT"
+        ? " is-late"
+        : "";
+  return '<div class="result-content' + (options.mode === "error" ? ' is-error' : '') + '">' +
+    '<div class="result-details">' +
+      '<div class="result-class">' + escapeHtml(student.kelas || "-") + '</div>' +
+      '<div class="result-status' + statusClass + '">' + escapeHtml(status) + '</div>' +
+      '<div class="result-time">' + escapeHtml(options.time || "") + '</div>' +
+    '</div>' +
+    studentPhotoHtml(student) +
+    studentNameHtml(student.nama) +
+    '<p class="result-message">' + escapeHtml(options.message || "") + '</p>' +
+  '</div>';
 }
 
 function showOptimisticSuccess(student, qrValue) {
@@ -2717,14 +2777,12 @@ function showOptimisticSuccess(student, qrValue) {
   lastSuccessfulScan = {nama:student.nama, kelas:student.kelas, masa:now};
   result.classList.remove("duplicate");
   result.classList.add("success");
-  result.innerHTML =
-    studentPhotoHtml(student) +
-    '<div class="icon">✅</div>' +
-    '<div class="title">KEHADIRAN DIREKODKAN</div>' +
-    studentNameHtml(student.nama) +
-    '<div class="class">' + escapeHtml(student.kelas || "") + '</div>' +
-    '<div class="status">HADIR</div>' +
-    '<div class="time">' + escapeHtml(now) + '</div>';
+  result.innerHTML = studentResultHtml(student, {
+    status:"MENYIMPAN",
+    time:now,
+    message:"Rekod sedang disahkan.",
+    mode:"pending"
+  });
   setScanFeedback("Sedang menyimpan data di belakang...", "pending");
   soundSuccess();
   if (navigator.vibrate) navigator.vibrate(150);
@@ -2758,28 +2816,27 @@ function showResult(data, qrValue, options = {}) {
       setScanFeedback((data.nama || "Murid") + " sudah direkod hari ini" + (data.masa ? " pada " + data.masa : "") + ".", "warning");
       result.classList.remove("success");
       result.classList.add("duplicate");
-      result.innerHTML =
-        studentPhotoHtml(displayStudent) +
-        '<div class="icon">⚠️</div>' +
-        '<div class="title">KEHADIRAN SUDAH DIREKOD</div>' +
-        studentNameHtml(data.nama) +
-        '<div class="class">' + escapeHtml(data.kelas || "") + '</div>' +
-        '<div class="status">' + escapeHtml(data.attendanceStatus || "SUDAH DIREKOD") + '</div>' +
-        '<div class="time">' + escapeHtml(data.masa || "") + '</div>';
+      result.innerHTML = studentResultHtml(displayStudent, {
+        status:"SUDAH DIREKOD",
+        time:data.masa || "",
+        message:"Kehadiran telah direkodkan lebih awal.",
+        mode:"duplicate"
+      });
     } else {
       if (!options.optimisticShown) soundSuccess();
       lastSuccessfulScan = {nama:data.nama,kelas:data.kelas,masa:data.masa};
       setScanFeedback("", "");
       result.classList.remove("duplicate");
       result.classList.add("success");
-      result.innerHTML =
-        studentPhotoHtml(displayStudent) +
-        '<div class="icon">✅</div>' +
-        '<div class="title">KEHADIRAN DIREKODKAN</div>' +
-        studentNameHtml(data.nama) +
-        '<div class="class">' + escapeHtml(data.kelas || "") + '</div>' +
-        '<div class="status">' + escapeHtml(data.attendanceStatus || "HADIR") + '</div>' +
-        '<div class="time">' + escapeHtml(data.masa || "") + '</div>';
+      const attendanceStatus = String(data.attendanceStatus || "HADIR").toUpperCase();
+      result.innerHTML = studentResultHtml(displayStudent, {
+        status:attendanceStatus,
+        time:data.masa || "",
+        message:attendanceStatus === "LEWAT"
+          ? "Kehadiran anda telah direkodkan."
+          : "Tahniah kerana hadir hari ini!",
+        mode:"success"
+      });
     }
     if (data.syncWarning) {
       const notice = "Rekod Portal Staf berjaya, tetapi SMART ATTENDANCE belum disegerakkan. Maklumkan pentadbir dan imbas semula selepas sambungan dibaiki.";
@@ -2793,7 +2850,18 @@ function showResult(data, qrValue, options = {}) {
   if (!isCurrent) return;
   soundError();
   const message = data && data.message ? data.message : "Cuba lagi.";
-  if (lastSuccessfulScan) {
+  const knownId = String(qrValue || (data && data.id) || "").trim();
+  const knownStudent = knownId ? studentDirectory.get(knownId) : null;
+  if (knownStudent) {
+    result.classList.remove("success", "duplicate");
+    result.innerHTML = studentResultHtml(knownStudent, {
+      status:"RALAT",
+      time:new Date().toLocaleTimeString("ms-MY", {hour:"2-digit", minute:"2-digit", second:"2-digit"}),
+      message:"Kehadiran tidak dapat direkodkan. Cuba lagi.",
+      mode:"error"
+    });
+    setScanFeedback(message, "error");
+  } else if (lastSuccessfulScan) {
     setScanFeedback(message, "error");
   } else {
     result.classList.remove("success", "duplicate");
